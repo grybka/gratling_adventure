@@ -18,5 +18,8 @@ class AbstractDisplay:
     def update_map(self,map):
         ...
 
+    def update_map_position(self,position): #position is an x,y tuple in pixels on the map image
+        ...
+
     def get_waiting_choices(self):
         return None

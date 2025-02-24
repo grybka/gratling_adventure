@@ -5,6 +5,7 @@ from pygame_gui.elements.ui_panel import UIPanel
 from pygame_gui.elements.ui_label import UILabel
 from pygame_gui.elements.ui_text_box import UITextBox
 from pygame_gui.elements.ui_button import UIButton
+from pygame_gui.elements.ui_image import UIImage
 from base.AbstractDisplay import AbstractDisplay
 
 #a multirow array of text buttons
@@ -99,10 +100,59 @@ def string_list_matches_so_far(choice,words_picked):
             return False
     return True
 
+class MapImage(UIImage):
+    def __init__(self,relative_rect,manager=None,container=None,anchors=None):
+        self.map_image_dims=(relative_rect.width,relative_rect.height)
+        self.submap_image=surface.Surface(self.map_image_dims)
+        super().__init__(image_surface=self.submap_image,relative_rect=relative_rect,manager=manager,container=container,anchors=anchors)
+        self.map_image=None
+        self.map_position=(0,0)
+        self.target_map_position=(0,0)
+        self.scroll_speed=4
+        
+        
+        self.map_dirty=True #need to redraw
+
+    def update_map_image(self,map_image):
+        self.map_image=map_image
+        self.map_dirty=True        
+
+    def update_map_position(self,position): #position is an x,y tuple in pixels on the map image
+        self.target_map_position=position    
+        self.map_dirty=True
+
+    def update_map_display(self): 
+        if self.map_image is None:
+            return   
+        blit_pos=(-self.map_position[0]+self.submap_image.width//2,-self.map_position[1]+self.submap_image.height//2)
+        self.submap_image.fill((255,255,255))
+        self.submap_image.blit(self.map_image,blit_pos)
+        self.set_image(self.submap_image)      
+
+    def update(self,time_delta: float):
+        if self.map_position!=self.target_map_position:
+            dx=self.target_map_position[0]-self.map_position[0]
+            dy=self.target_map_position[1]-self.map_position[1]
+            dist=(dx**2+dy**2)**0.5
+            if dist<=self.scroll_speed:
+                self.map_position=self.target_map_position
+            else:
+                self.map_position=(self.map_position[0]+dx/dist*self.scroll_speed,self.map_position[1]+dy/dist*self.scroll_speed)
+            self.map_dirty=True
+        if self.map_dirty:
+            self.update_map_display()
+            self.map_dirty=False
+        super().update(time_delta)
+
+
+    
+
+
 class DisplayInterface(UIPanel,AbstractDisplay):
     def __init__(self, screen, manager):
         super().__init__(relative_rect=Rect((0, 0), (screen.width, screen.height)), manager=manager)
         padding=10
+        sub_padding=4
         col_width=(screen.width-3*padding)/2
         height_1=(screen.height-4*padding)*0.4
         height_2=(screen.height-4*padding)*0.4
@@ -111,7 +161,12 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         #image space
         self.image_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
         #status space
-        self.status_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self,anchors={"left_target": self.image_panel})
+        self.status_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self,anchors={"left_target": self.image_panel}) 
+        #self.map_image_dims=(self.status_panel.rect.width,self.status_panel.rect.height)
+        #self.map_position=(0,0)
+        #self.submap_image=surface.Surface(self.map_image_dims)
+        #self.map_image_element=UIImage(relative_rect=Rect((0, 0), self.map_image_dims), image_surface=self.submap_image, manager=self.ui_manager, container=self.status_panel)               
+        self.map_image_element=MapImage(relative_rect=Rect((sub_padding, sub_padding), (self.status_panel.rect.width-2*sub_padding,self.status_panel.rect.height-2*sub_padding)), manager=self.ui_manager, container=self.status_panel)
         #description space
         self.description_panel = UITextBox(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_2)), manager=manager,html_text="", container=self,anchors={"top_target": self.image_panel})
 
@@ -136,11 +191,28 @@ class DisplayInterface(UIPanel,AbstractDisplay):
     def update_image(self,image):
         ...
 
-    def update_status(self,status):
+    def update_status(self,status):        
         ...
 
-    def update_map(self,map):
-        ...
+    def update_map(self,map_image):
+        self.map_image_element.update_map_image(map_image)
+        #self.map_image=map_image
+        #self.update_map_display()                        
+
+    def update_map_position(self,position): #position is an x,y tuple in pixels on the map image
+        self.map_image_element.update_map_position(position)
+        #self.map_position=position
+        #self.update_map_display()
+
+    def update_map_display(self):
+        print("self.map_position",self.map_position)  
+        blit_pos=(-self.map_position[0]+self.submap_image.width//2,-self.map_position[1]+self.submap_image.height//2)
+        self.submap_image.fill((0,0,0))
+        #self.map_image.blit(self.submap_image,blit_pos)                     
+        self.submap_image.blit(self.map_image,blit_pos)
+#        sub_image=self.map_image.subsurface(Rect(self.map_position,self.map_image_dims))
+        self.map_image_element.set_image(self.submap_image)
+        #self.map_image_element.set_image(self.map_image)
 
     def get_remaining_choices(self):
         remaining_choices=[]
