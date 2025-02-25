@@ -107,7 +107,7 @@ class MapImage(UIImage):
         super().__init__(image_surface=self.submap_image,relative_rect=relative_rect,manager=manager,container=container,anchors=anchors)
         self.map_image=None
         self.map_position=(0,0)
-        self.target_map_position=(0,0)
+        self.target_map_position=None
         self.scroll_speed=4
         
         
@@ -118,6 +118,8 @@ class MapImage(UIImage):
         self.map_dirty=True        
 
     def update_map_position(self,position): #position is an x,y tuple in pixels on the map image
+        if self.target_map_position is None:
+            self.map_position=position
         self.target_map_position=position    
         self.map_dirty=True
 
@@ -130,7 +132,7 @@ class MapImage(UIImage):
         self.set_image(self.submap_image)      
 
     def update(self,time_delta: float):
-        if self.map_position!=self.target_map_position:
+        if self.target_map_position is not None and self.map_position!=self.target_map_position:
             dx=self.target_map_position[0]-self.map_position[0]
             dy=self.target_map_position[1]-self.map_position[1]
             dist=(dx**2+dy**2)**0.5
@@ -184,6 +186,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
 
     def update_choices(self,choices):
         #reset choices and words picked
+        self.input_panel.back_button.hide()
         self.words_picked=[]
         self.choices=choices
         self.update_words()
@@ -222,14 +225,16 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         return remaining_choices
 
     def word_picked(self,word_chosen):
+        self.input_panel.back_button.show()
+
         self.words_picked.append(word_chosen)
         remaining_choices=self.get_remaining_choices()
-        #if we're done, we're done
-        if len(remaining_choices)==1:
-            if len(remaining_choices[0])==len(self.words_picked):
-                #print("Action chosen",self.words_picked)
-                self.choice_to_engine=self.words_picked
-                self.update_choices([])
+        #print("remaining choices",remaining_choices)
+        #if we've selected a choice,  we're done
+        if len(remaining_choices[0])==len(self.words_picked):
+            #print("Action chosen",self.words_picked)
+            self.choice_to_engine=self.words_picked
+            self.update_choices([])
         self.update_words()
 
 

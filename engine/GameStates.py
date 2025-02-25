@@ -1,5 +1,6 @@
 from engine.Engine import GameEngine
 from base.AbstractEngine import set_game_engine
+from world.generation.MapGenerator import MapGenerator1
 
 
 class GameState:
@@ -22,7 +23,9 @@ class GameStateManager:
 class PlayGameState(GameState):
     def __init__(self,display):
         self.is_running=True
-        self.engine=GameEngine(display)
+        self.map_generator=MapGenerator1()
+        self.map_generator.generate_map()
+        self.engine=GameEngine(display,self.map_generator.my_map)
         set_game_engine(self.engine)
         self.display=display
 

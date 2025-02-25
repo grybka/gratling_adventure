@@ -5,16 +5,17 @@ from engine.GameStates import GameState, GameStateManager, PlayGameState
 
 pygame.init()
 
-
 pygame.display.set_caption('Gratling Adventure')
-window_surface = pygame.display.set_mode((800, 600))
 
+window_size=(1000, 800)
 
-background = pygame.Surface((800, 600))
+window_surface = pygame.display.set_mode(window_size)
+
+background = pygame.Surface(window_size)
 
 background.fill(pygame.Color('#000000'))
 
-manager = pygame_gui.UIManager((800, 600))
+manager = pygame_gui.UIManager(window_size)
 
 clock = pygame.time.Clock()
 

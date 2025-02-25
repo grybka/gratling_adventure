@@ -21,6 +21,9 @@ class GameObject(TaggedObject):
                 return "an "+choice_word
             else:
                 return "a "+choice_word
+            
+    def set_location(self,location):
+        self.location=location
 
     def get_tags(self):
         return self.tags
@@ -47,38 +50,6 @@ class GameObject(TaggedObject):
         return 0
 
     
-class GameLocation(GameObject):
-    def __init__(self,short_description="a room"):
-        super().__init__(choice_word="room")
-        self.objects=[] #list of objects in the location
-        self.exits=[] #list of connections to other locations
-        self.short_description=short_description #short description of the location
-        self.description="It's a room" #description of the location
-        #self.image=None #image of the location
-
-    def get_objects(self):
-        return self.objects
-
-    def get_description(self):
-        return self.description
-    
-    def get_entrance_text(self):
-        return "You are in the "+self.short_description+"\n"+self.description
-
-    
-class GameExit(GameObject):
-    def __init__(self,destination:GameLocation=None,choice_word="path",short_description="a path"):
-        super().__init__(choice_word=choice_word)
-        self.destination=destination #the location that this exit leads to
-        self.short_description=short_description #short description of the exit
-        self.description="a path" #description of the exit
-        self.add_action(["go",self],self.go)
-    
-    def go(self,action_template):
-        game_engine().move_character(game_engine().player_object,self)
-        #print("go called")
-        ...
-
 #The sort of object one might put in their inventory
 class Carryable(GameObject):
     def __init__(self,choice_word="item"):
@@ -95,6 +66,12 @@ class Character(GameObject):
         self.description="It's a creature"
         self.inventory=[] #list of objects in the player's inventory
         self.max_inventory_size=10 #maximum number of objects that the player can carry
+        self.known_locations=[] #given as map positions
+
+    def set_location(self,location):
+        super().set_location(location)
+        self.known_locations.append(location.map_position)
+
 
     def add_to_inventory(self,object:Carryable):
         if len(self.inventory)<self.max_inventory_size:
