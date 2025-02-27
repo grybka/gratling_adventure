@@ -1,0 +1,27 @@
+starting_room_type: 'room'
+location_types:
+  corridor:
+    n_exits: [2,4]
+    exits:
+      - ['cross', 'hallway', 'corridor', 2 ]
+      - ['ex',    'hallway', 'corridor', 1 ]
+      - ['cross', 'hallway', 'room', 2 ]
+      - ['cross', 'door', 'chamber', 2 ]
+  room:
+    n_exits: [2,4]
+    exits:
+      - ['cross', 'hallway', 'corridor', 2 ]
+      - ['cross', 'hallway', 'room', 2 ]
+      - ['cross', 'door', 'chamber', 1 ]
+  chamber:
+    n_exits: [2,4]
+    exits:
+      - ['cross', 'door', 'corridor', 3 ]
+      - ['cross', 'door', 'room', 2 ]
+      - ['cross', 'door', 'chamber', 1 ]
+exit_types:
+  hallway:
+    names: ["hallway", "passage", "archway"]
+  door:
+    class: 'DoorExit'
+    names: ["door"]

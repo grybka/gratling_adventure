@@ -58,8 +58,9 @@ class ActionTemplateSlot:
 
 class ActionTemplate:
     def __init__(self,slots=[],referring_object=None,referring_function=None):
-        self.referring_object=referring_object
+        self.referring_object=referring_object #TODO Remove this
         self.referring_function=referring_function
+        
         self.slots=[]
         for element in slots:
             if isinstance(element,str):
@@ -136,3 +137,18 @@ class ActionTemplate:
                         partial.slots.append(ActionTemplateSlot(object=slot.object))
             partial_fills=next_partial_fills
         return partial_fills
+    
+global _action_templates_by_category
+_action_templates_by_category={}
+def register_action_template(category:str, action_template:ActionTemplate):
+    global _action_templates_by_category
+    if category not in _action_templates_by_category:
+        _action_templates_by_category[category]=[]
+    _action_templates_by_category[category].append(action_template)
+
+def get_action_templates(category:str):
+    global _action_templates_by_category
+    if category in _action_templates_by_category:
+        return _action_templates_by_category[category]
+    else:
+        raise Exception("Action template category {} not found".format(category))

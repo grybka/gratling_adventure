@@ -155,7 +155,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         super().__init__(relative_rect=Rect((0, 0), (screen.width, screen.height)), manager=manager)
         padding=10
         sub_padding=4
-        col_width=(screen.width-3*padding)/2
+        col_width=(screen.width-4*padding)/3
         height_1=(screen.height-4*padding)*0.4
         height_2=(screen.height-4*padding)*0.4
         height_3=(screen.height-4*padding)*0.2
@@ -163,12 +163,14 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         #image space
         self.image_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
         #status space
-        self.status_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self,anchors={"left_target": self.image_panel}) 
+        self.status_panel = UITextBox(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, html_text="", container=self,anchors={"left_target": self.image_panel}) 
         #self.map_image_dims=(self.status_panel.rect.width,self.status_panel.rect.height)
         #self.map_position=(0,0)
         #self.submap_image=surface.Surface(self.map_image_dims)
         #self.map_image_element=UIImage(relative_rect=Rect((0, 0), self.map_image_dims), image_surface=self.submap_image, manager=self.ui_manager, container=self.status_panel)               
-        self.map_image_element=MapImage(relative_rect=Rect((sub_padding, sub_padding), (self.status_panel.rect.width-2*sub_padding,self.status_panel.rect.height-2*sub_padding)), manager=self.ui_manager, container=self.status_panel)
+        self.map_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self,anchors={"left_target": self.status_panel}) 
+
+        self.map_image_element=MapImage(relative_rect=Rect((sub_padding, sub_padding), (self.status_panel.rect.width-2*sub_padding,self.status_panel.rect.height-2*sub_padding)), manager=self.ui_manager, container=self.map_panel)
         #description space
         self.description_panel = UITextBox(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_2)), manager=manager,html_text="", container=self,anchors={"top_target": self.image_panel})
 
@@ -194,7 +196,14 @@ class DisplayInterface(UIPanel,AbstractDisplay):
     def update_image(self,image):
         ...
 
-    def update_status(self,status):        
+    def update_status(self,status):
+        my_text=""
+        my_text+="Inventory:\n"
+        for item in  status["inventory"]:
+            my_text+=item+"\n"
+        self.status_panel.clear()     
+        self.status_panel.append_html_text(my_text )
+        #print("status panel is ",str(status))
         ...
 
     def update_map(self,map_image):

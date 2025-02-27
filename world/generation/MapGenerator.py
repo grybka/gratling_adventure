@@ -1,11 +1,28 @@
 from world.LocationMap import LocationMap, add_grid_pos, opposite_dir
 from world.GameLocation import *
 import random
+import yaml
+
+#perhaps the table looks like:
+#for a given room type:
+#(TODO decorations)
+#probability of:
+# (exit direction, exit type, room type, weight)
+
+#example 
+# (northeast, door, room, 5)
+
 
 class MapGenerator1:
     def __init__(self):
         self.edge_rooms=[]
         self.my_map=LocationMap()
+        with open("world/generation/dungeon_map_weights.yaml") as f:
+            self.yaml_data=yaml.load(f,Loader=yaml.FullLoader)
+        self.starting_room_type=self.yaml_data["starting_room_type"]
+
+
+
         #----Some configuration----
         #how much more likely are straights than angles
         self.exit_weights={ (-1,-1):1,(-1,0):2,(-1,1):1,(0,-1):2,(0,1):2,(1,-1):1,(1,0):2,(1,1):1}
@@ -22,16 +39,55 @@ class MapGenerator1:
         #Note I assume the room object has already been created in an empty sense
         edge_rooms=[]
         #TODO generate name and description
+        room_type=room.generation_data['room_type']
+        room.short_description=room_type
         #TODO generate exits
         n_exits=random.randint(1,4)
         retries=0
         while len(room.exits)<n_exits and retries<self.n_exit_retries:
-            if not self.generate_exit(room):
+            if not self.generate_exit(room,room_type):
                 retries+=1
         #TODO generate objects
         return edge_rooms
     
-    def generate_exit(self,room):
+    def get_exit_weights(self,room_type):
+        exits=[]
+        weights=[]
+        for entry in self.yaml_data['location_types'][room_type]['exits']:
+            if entry[0]=='cross':
+                for exit_dir in [ (-1,0),(0,-1),(1,0),(0,1) ]:
+                    exits.append( [exit_dir,entry[1],entry[2]] )
+                    weights.append(entry[3])
+            elif entry[0]=='ex':
+                for exit_dir in [ (-1,-1),(-1,1),(1,-1),(1,1) ]:
+                    exits.append( [exit_dir,entry[1],entry[2]] )
+                    weights.append(entry[3])
+        return exits,weights
+
+    
+    def generate_exit(self,room,room_type):
+        exits,weights=self.get_exit_weights(room_type)
+        exit_choice=random.choices(exits,weights=weights,k=1)[0]
+        new_dir=exit_choice[0]
+        exit_type=exit_choice[1]
+        if not self.is_exit_open(room,new_dir):
+            return False
+        new_coords=(room.map_position[0]+new_dir[0],room.map_position[1]+new_dir[1])
+        destination_room=self.my_map.get_room_at_grid_position(new_coords)
+        if destination_room is None:
+            destination_room=GameLocation("New Room")
+            destination_room.generation_data['room_type']=exit_choice[2]
+            self.my_map.add_room(destination_room,new_coords)
+            self.edge_rooms.append(destination_room)
+        self.create_exit_pair(room,destination_room,exit_choice)
+
+        #new_exit=GameExit(choice_word=self.dir_to_name(new_dir))
+        #new_exit_back=GameExit(choice_word=self.dir_to_name(opposite_dir(new_dir)))
+        #self.decorate_exit_pair(new_exit,new_exit_back,exit_choice[1],new_dir,opposite_dir(new_dir))
+        #self.my_map.add_exit(room,destination_room,new_exit)
+        #self.my_map.add_exit(destination_room,room,new_exit_back)
+        return True
+        """
         #exit_dirs=self.get_open_exit_dirs(room)
         exit_dirs=self.get_exit_dirs()
         #TODO maybe a self.get exit weight function?
@@ -51,15 +107,20 @@ class MapGenerator1:
         self.my_map.add_exit(room,destination_room,new_exit)
         self.my_map.add_exit(destination_room,room,new_exit_back)
         return True
+        """
         
 
 
     def generate_starting_room(self):
+        room_type=self.starting_room_type
         starting_room=GameLocation("Starting Room")
         self.my_map.add_room(starting_room,self.my_map.get_starting_grid_position())
-        n_exits=random.randint(2,4)
+        #TODO generate name and description
+        n_exit_bounds=self.yaml_data['location_types'][room_type]['n_exits']
+        n_exits=random.randint(n_exit_bounds[0],n_exit_bounds[1])
+        #n_exits=random.randint(2,4)
         for i in range(n_exits):
-            self.generate_exit(starting_room)
+            self.generate_exit(starting_room,room_type)
         #TODO generate exits
         return starting_room
     
@@ -129,3 +190,31 @@ class MapGenerator1:
             dir=self.my_map.get_exit_key_direction(exit)
             if dir in exit_dirs: exit_dirs.remove(dir)
         return exit_dirs
+
+#    def decorate_exit_pair(self,exit1,exit2,exit_type,direction1,direction2):
+    def create_exit_pair(self,room,destination_room,exit_choice):
+        exit_type=exit_choice[1]
+        direction1=exit_choice[0]
+        direction2=opposite_dir(direction1)
+        exit_info=self.yaml_data['exit_types'][exit_type]
+        #print("exit info",exit_info)
+        if 'class' in exit_info:
+            the_class=get_game_object_class(exit_info['class'])
+            exit1=the_class()
+            exit2=the_class()
+        else:
+            exit1=GameExit(destination_room)
+            exit2=GameExit(room)
+
+        exit1.direction=self.dir_to_name(direction1)
+        exit1.base_noun=exit_type
+        exit2.direction=self.dir_to_name(direction2)
+        exit2.base_noun=exit_type
+        exit1.exit_pair=exit2
+        exit2.exit_pair=exit1
+
+        #new_exit=GameExit(choice_word=self.dir_to_name(new_dir))
+        #new_exit_back=GameExit(choice_word=self.dir_to_name(opposite_dir(new_dir)))
+        #self.decorate_exit_pair(new_exit,new_exit_back,exit_choice[1],new_dir,opposite_dir(new_dir))
+        self.my_map.add_exit(room,destination_room,exit1)
+        self.my_map.add_exit(destination_room,room,exit2)

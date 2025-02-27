@@ -7,7 +7,7 @@ pygame.init()
 
 pygame.display.set_caption('Gratling Adventure')
 
-window_size=(1000, 800)
+window_size=(1200, 800)
 
 window_surface = pygame.display.set_mode(window_size)
 

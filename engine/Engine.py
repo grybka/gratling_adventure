@@ -5,6 +5,11 @@ from world.GameLocation import *
 from world.Player import Player
 from enum import Enum
 
+from base.Action import Action,get_actions
+from engine.BasicActions import *
+from engine.DebugActions import *
+
+
 from world.LocationMap import LocationMapGrid
 from world.ObjectFactory import ObjectFactory
 
@@ -19,6 +24,22 @@ class PlayMode(Enum):
     EXPLORATION=1
     DEBUG=2
 
+def comma_separate_list(items):
+    if len(items)==0:
+        return ""
+    elif len(items)==1:
+        return items[0]
+    elif len(items)==2:
+        return items[0]+" and "+items[1]
+    else:
+        return ", ".join(items[:-1])+", and "+items[-1]
+    
+def add_a(word):
+    if word[0] in "aeiou":
+        return "an "+word
+    else:
+        return "a "+word
+
 #separate messages to the player from the engine logic
 class TextWriter:
     def __init__(self,display:AbstractDisplay,player_object:Player):
@@ -31,27 +52,16 @@ class TextWriter:
     def announce_failure(self,text):
         self.display.update_text("<strong>"+text+"</strong>\n")
 
-    def player_takes_item(self,item):
-        self.announce_action("You take the "+item.get_choice_word()+"\n")
-
-    def npc_takes_item(self,npc,item):
-        self.announce_action(npc.get_choice_word()+" takes the "+item.get_choice_word()+"\n")
-
-    def player_drops_item(self,item):
-        self.announce_action("You drop the "+item.get_choice_word()+"\n")        
-
-    def npc_drops_item(self,npc,item):
-        self.announce_action(npc.get_choice_word()+" drops the "+item.get_choice_word()+"\n")
-
     def describe_room_on_entrance(self):
-        my_text=""
+        my_text="\n"
         my_text+=self.player_object.location.get_entrance_text()+"\n"
-        my_text+="You see here:\n"
-        for obj in self.player_object.location.objects:
-            if obj!=self.player_object:  #don't list the player in the room
-                my_text+=obj.get_reference()+"\n"
-        for obj in self.player_object.location.exits:
-            my_text+=obj.get_reference()+"\n"
+        my_text+="Visible Exits: "
+        my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
+        if len(self.player_object.location.objects)>1:
+            my_text+="You see here: "
+            for obj in self.player_object.location.objects:
+                if obj!=self.player_object:  #don't list the player in the room
+                    my_text+=obj.get_short_description()+"\n"
         self.display.update_text(my_text)
         
 
@@ -66,20 +76,12 @@ class GameEngine(AbstractEngine):
         self.player_object=Player()
         self.writer=TextWriter(display,self.player_object)
 
-        #self.player_location=None
+        #special actions
+        
 
-        #Time
-        #time is in rounds, I suppose.  An command might take multiple rounds to execute
-        #so lets say that a command must return how many rounds have passed 
 
-        #initialization
-        #location_1=GameLocation()
-        #location_2=GameLocation()
-        #location_3=GameLocation()
-        #location_1.exits.append(GameExit(destination=location_2))
-        #location_2.exits.append(GameExit(destination=location_3))
-        #location_3.exits.append(GameExit(destination=location_1))
-        #location_1.objects.append(Carryable())        
+
+
         self.world_map=world_map
         #self.assign_object_location(self.player_object,location_1)
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
@@ -90,42 +92,42 @@ class GameEngine(AbstractEngine):
     def post_text(self,text):
         self.display.update_text(text)
 
-    def choice_made(self,choice):
-        #process choice
-        # that is to say, figure out which object the player is interacting with
-        #Get what should be updated on the display and display it
-        #then present the current choices
-        pass
-
     def present_current_choices(self):
+        all_possible_actions=[]
         if self.play_mode==PlayMode.EXPLORATION:
+            #Get all of the normal actions that the player can perform
+            actions=get_actions("exploration")
+            #print("actions",actions)
             #action_templates=self.player_location.get_action_templates()
             relevant_objects=self.get_relevant_objects()
-            action_templates=[]
-            for obj in relevant_objects:
-                action_templates.extend(obj.get_action_templates())
-            #print("relevant objects",relevant_objects)
-            #print("aciton templates",action_templates)
-            all_templates=[]
-            for action_template in action_templates:
-                all_templates.extend(action_template.get_filled_templates(relevant_objects))
-            #add engine-specific templates
-            all_templates.append(ActionTemplate(["debug"],referring_function=self.enter_debug_mode,referring_object=self.player_object))
-            #print("all templates",all_templates)
-            
+            #print("n relevant objects",len(relevant_objects))
+            for action in actions:
+                possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
+                #TODO test if possible
+                for fill in possible_fills:
+                    all_possible_actions.append((action,fill))
+            #Add any special actions for the engine
+            #all_possible_actions.append( (ActionEnterDebugMode(),[]) )
         elif self.play_mode==PlayMode.DEBUG:
-            all_templates=[]
-            all_templates.append(ActionTemplate(["exit debug"],referring_function=self.exit_debug_mode,referring_object=self.player_object))
-            all_templates.extend(self.object_factory.get_creation_action_templates(self.player_object))
+            actions=get_actions("debug")
+            relevant_objects=self.get_relevant_objects()
+            for action in actions:
+                possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
+                #TODO test if possible
+                for fill in possible_fills:
+                    all_possible_actions.append((action,fill))
+
+
+
+
+        offered_actions={}
         word_choices=[]
-        
-        for filled_template in all_templates:
-            word_choices.append(filled_template.to_word_choices())
-        #print("word choices",word_choices)
+        for action,fill in all_possible_actions:
+            choice=action.to_string_list(self.player_object,fill)
+            offered_actions[",".join(choice)]=(action,fill)
+            word_choices.append(choice)
         self.display.update_choices(word_choices)
-        self.last_presented_templates=all_templates
-            
-       
+        self.last_presented_actions=offered_actions       
 
     def get_relevant_objects(self):
         ret=[self.player_object,self.player_object.location]
@@ -142,26 +144,18 @@ class GameEngine(AbstractEngine):
         #check if the player has made a choice
         choice_made=self.display.get_waiting_choices()
         if choice_made is not None:
-            #print("Choice made:",choice_made)
+            print("Choice made:",choice_made)
             #turn the choice into a function
-            for template in self.last_presented_templates:
-                if template.matches_word_choices(choice_made):
-                    #print("Template {} matches choice".format(template))
-                    #print("referring object is ",template.referring_object)
-                    #rounds_to_process=template.referring_object.execute_action(template)
-                    rounds_to_process=template.referring_function(template)
-                    #TODO time passes if the action takes time
-                    self.present_current_choices()
-
-                    break
-
-
-
-
+            action=self.last_presented_actions[",".join(choice_made)]
+            time_elapsed=action[0].do_action(self.player_object,action[1])
+            self.display.update_status(self.player_object.get_status_object())
+            self.present_current_choices()
 
     def announce_action(self,text):
         self.writer.announce_action(text)
-        #self.display.update_text("<em>"+text+"</em>\n")    
+
+    def announce_failure(self,text):
+        self.writer.announce_failure(text)
 
     def assign_object_location(self,object:GameObject,location:GameLocation):
         #So I can make announcemnets
@@ -172,15 +166,9 @@ class GameEngine(AbstractEngine):
             self.display.update_map_position(self.world_map.get_map_image_location(location))
             self.writer.describe_room_on_entrance()
         elif location==self.player_object.location:
-            self.writer.announce_action(object.get_reference()+" appears in a flash of logic\n")
+            self.writer.announce_action(add_a(object.get_noun_phrase())+" appears in a flash of logic\n")
         else:
             self.writer.announce_action("They've changed something")
-                  
-
-    def move_character(self,character,exit):
-        self.writer.announce_action("You go through the "+exit.get_choice_word())
-        character.location.objects.remove(character) #remove the character from the old location
-        self.character_arrives(character,exit.destination)
 
     def character_arrives(self,character:Character,location:GameLocation):
         character.set_location(location)
@@ -193,39 +181,16 @@ class GameEngine(AbstractEngine):
                 self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )   
             self.display.update_map_position(self.world_map.get_map_image_location(location))
 
-    def transfer_object_to_inventory(self,object:Carryable,new_owner:Character):
-        success,reason=new_owner.add_to_inventory(object)
-        if success:
-            self.player_object.location.objects.remove(object)     
-            if new_owner==self.player_object:
-                self.writer.player_takes_item(object)
-            else:
-                self.writer.npc_takes_item(object)
-        else:
-            if new_owner==self.player_object:
-                self.writer.announce_failure("You can't take the "+object.get_choice_word()+".  "+reason)
-
-    def transfer_object_out_of_inventory(self,object:Carryable,owner:Character,new_location:GameLocation):
-        success,reason=owner.remove_from_inventory(object)
-        if success:        
-            new_location.objects.append(object)        
-            if owner==self.player_object:
-                self.writer.player_drops_item(object)
-            else:
-                self.writer.npc_drops_item(owner,object)                
-        else:
-            if owner==self.player_object:
-                self.writer.announce_failure("You can't drop the "+object.get_choice_word()+".  "+reason)
 
     #----DEBUG MODE FUNCTIONS-----
-    def enter_debug_mode(self,template):
+    def enter_debug_mode(self):
         self.play_mode=PlayMode.DEBUG
         self.display.update_map(self.world_map.get_map_image(self.player_object.location,None)  )   
 
         self.display.update_text("Debug mode activated\n")
         #self.display.update_choices(template.get_debug_choices())
 
-    def exit_debug_mode(self,template):
+    def exit_debug_mode(self):
         self.play_mode=PlayMode.EXPLORATION
         self.display.update_map(self.world_map.get_map_image(self.player_object.location,self.player_object.known_locations)  )   
 

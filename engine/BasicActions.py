@@ -1,0 +1,62 @@
+from base.Action import Action,register_action
+from base.TaggedObject import TaggedObject,TagRequirements
+from base.AbstractEngine import AbstractEngine,game_engine
+
+class ActionGo(Action):
+    #go (exit)
+    def __init__(self):
+        super().__init__(action_word="go",n_args=1,tag_requirements=[TagRequirements(required_tags=["exit"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        exit=arguments[0]
+        success,time=exit.go_action(action_subject)
+        return time
+register_action("exploration",ActionGo())
+
+class ActionTake(Action):
+    #take (object)
+    def __init__(self):
+        super().__init__(action_word="take",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        obj=arguments[0]
+        game_engine().writer.announce_action("You take the "+obj.get_choice_word())
+        action_subject.location.objects.remove(obj)
+        game_engine().player_object.inventory.append(obj) #add the object to the player's inventory
+        return 1
+register_action("exploration",ActionTake())
+
+class ActionDrop(Action):
+    #drop (object)
+    def __init__(self):
+        super().__init__(action_word="drop",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        obj=arguments[0]
+        game_engine().writer.announce_action("You drop the "+obj.get_choice_word())
+        action_subject.location.objects.append(obj)
+        game_engine().player_object.inventory.remove(obj) #remove the object from the player's inventory
+        return 1
+register_action("exploration",ActionDrop())
+
+class ActionOpen(Action):
+    #open (door)
+    def __init__(self):
+        super().__init__(action_word="open",n_args=1,tag_requirements=[TagRequirements(required_tags=["door"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        door=arguments[0]
+        return door.open_action(action_subject)[1]
+register_action("exploration",ActionOpen())
+
+class ActionClose(Action):
+    #close (door)
+    def __init__(self):
+        super().__init__(action_word="close",n_args=1,tag_requirements=[TagRequirements(required_tags=["door"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        door=arguments[0]
+        return door.close_action(action_subject)[1]
+register_action("exploration",ActionClose())
+
+
