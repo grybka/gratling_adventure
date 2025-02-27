@@ -1,0 +1,2 @@
+carryable - can be carried
+carried_by_player - in the player's inventory
