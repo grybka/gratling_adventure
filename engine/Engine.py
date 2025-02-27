@@ -180,6 +180,7 @@ class GameEngine(AbstractEngine):
             else:    
                 self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )   
             self.display.update_map_position(self.world_map.get_map_image_location(location))
+            self.display.update_image("catacombs")
 
 
     #----DEBUG MODE FUNCTIONS-----

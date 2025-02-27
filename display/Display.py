@@ -7,6 +7,8 @@ from pygame_gui.elements.ui_text_box import UITextBox
 from pygame_gui.elements.ui_button import UIButton
 from pygame_gui.elements.ui_image import UIImage
 from base.AbstractDisplay import AbstractDisplay
+import yaml
+import os
 
 #a multirow array of text buttons
 class ButtonArray(UIContainer):
@@ -146,6 +148,30 @@ class MapImage(UIImage):
             self.map_dirty=False
         super().update(time_delta)
 
+class ImagePanel(UIPanel):
+    def __init__(self,relative_rect,manager=None,container=None,anchors=None):
+        super().__init__(relative_rect=relative_rect,manager=manager,container=container,anchors=anchors)
+        self.image_dims=(relative_rect.width,relative_rect.height)
+        self.image_surface=surface.Surface(self.image_dims)
+        self.image_shown=UIImage(relative_rect=Rect((0,0),(relative_rect.width,relative_rect.height)),manager=manager,container=self,image_surface=self.image_surface)               
+        with open("images/images.yaml","r") as f:
+            self.image_info=yaml.load(f,Loader=yaml.FullLoader)
+        self.base_path=self.image_info["base_path"]
+        self.loaded_images={}
+
+    def show_image(self,image_name):
+        if image_name not in self.image_info["images"]:
+            print("Image {} not found".format(image_name))
+            return
+        if image_name not in self.loaded_images:
+            print(image.get_extended())
+            target_file=os.path.join(self.base_path,self.image_info["images"][image_name]["file"])
+            print("loading image "+target_file)
+            self.loaded_images[image_name]=image.load(target_file)
+        self.image_surface.blit(self.loaded_images[image_name],(0,0))
+        self.set_image(self.image_surface)
+        
+
 
     
 
@@ -161,7 +187,8 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         height_3=(screen.height-4*padding)*0.2
 
         #image space
-        self.image_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
+        #self.image_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
+        self.image_panel = ImagePanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
         #status space
         self.status_panel = UITextBox(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, html_text="", container=self,anchors={"left_target": self.image_panel}) 
         #self.map_image_dims=(self.status_panel.rect.width,self.status_panel.rect.height)
@@ -194,7 +221,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         self.update_words()
 
     def update_image(self,image):
-        ...
+        self.image_panel.show_image(image)        
 
     def update_status(self,status):
         my_text=""
