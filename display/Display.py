@@ -168,8 +168,27 @@ class ImagePanel(UIPanel):
             target_file=os.path.join(self.base_path,self.image_info["images"][image_name]["file"])
             print("loading image "+target_file)
             self.loaded_images[image_name]=image.load(target_file)
-        self.image_surface.blit(self.loaded_images[image_name],(0,0))
-        self.set_image(self.image_surface)
+        image_size=self.loaded_images[image_name].get_size()
+        target_size=self.image_surface.get_size()
+        self.image_surface.fill((255,255,255))
+        if target_size[0]/image_size[0]<target_size[1]/image_size[1]:
+            scaled_surface=transform.scale(self.loaded_images[image_name],(int(target_size[0]),int(image_size[1]*target_size[0]/image_size[0])))
+            print("this one")
+            y_pos=(target_size[1]-scaled_surface.get_size()[1])//2
+            self.image_surface.blit(scaled_surface,(0,y_pos))
+
+        else:
+            scaled_surface=transform.scale(self.loaded_images[image_name],(int(image_size[0]*target_size[1]/image_size[1]),int(target_size[1])))
+            print("no that one")
+            x_pos=(target_size[0]-scaled_surface.get_size()[0])//2
+            self.image_surface.blit(scaled_surface,(x_pos,0))
+
+            
+
+        #scaled_surface=transform.scale(self.loaded_images[image_name],self.image_surface.get_size())
+        
+        self.image_shown.set_image(self.image_surface)
+        #self.set_image(self.image_surface)
         
 
 

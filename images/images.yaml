@@ -1,0 +1,4 @@
+base_path: images
+images:
+  catacombs:
+    file: catacombs.jpg
