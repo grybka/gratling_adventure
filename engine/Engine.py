@@ -165,6 +165,8 @@ class GameEngine(AbstractEngine):
             self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )     
             self.display.update_map_position(self.world_map.get_map_image_location(location))
             self.writer.describe_room_on_entrance()
+            self.display.update_image(location.get_entrance_image())
+
         elif location==self.player_object.location:
             self.writer.announce_action(add_a(object.get_noun_phrase())+" appears in a flash of logic\n")
         else:
@@ -180,7 +182,7 @@ class GameEngine(AbstractEngine):
             else:    
                 self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )   
             self.display.update_map_position(self.world_map.get_map_image_location(location))
-            self.display.update_image("catacombs")
+            self.display.update_image(location.get_entrance_image())
 
 
     #----DEBUG MODE FUNCTIONS-----

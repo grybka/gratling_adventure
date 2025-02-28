@@ -21,9 +21,14 @@ def get_game_object_class(class_name):
 #short description: an iron door to the east
 #TODO add more if necessary
 
+
+
+
+
+
 class GameObject(TaggedObject):
-    def __init__(self,base_noun="object",noun_phrase=None,short_description=None):
-        super().__init__()
+    def __init__(self,base_noun="object",noun_phrase=None,short_description=None,**kwargs):
+        super().__init__(**kwargs)
         self.location=None #the location that the object is in
         self.base_noun=base_noun
         self.noun_phrase=noun_phrase
@@ -58,6 +63,54 @@ class GameObject(TaggedObject):
         return self.tags
 
     
+#I'm considering moving to separate the object class, which represents
+#game objects, from Implentation type subclasse
+#So Container or Carriable might be Implementations because it just guarantees that
+#they have certain functions, and an object could be one or the other or both
+#but maybe I dont need this and can just have a bit of redundant code
+class ContainerInterface(TaggedObject):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.add_tag("container")
+        self.max_inventory_size=kwargs.get("max_inventory_size",10)
+        self.inventory=[]
+
+    def deposit_object(self,object:GameObject):
+        #TODO REMOVE OBJECT FROM EXISTING LOCATION
+        if len(self.inventory)<self.max_inventory_size:
+            self.inventory.append(object)
+            object.location=self
+            return True,""
+        else:
+            return False,"The container is full"
+
+    def withdraw_object(self,object:GameObject):
+        self.inventory.remove(object)
+        return True,""
+
+class OpenableInterface(TaggedObject):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.add_tag("openable")
+        self.add_tag("closable")
+        self.is_open=False
+
+    def open_action(self,opener:GameObject):
+        if self.is_open:
+            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already open.")
+            return False,0
+        game_engine().writer.announce_action("You open the "+self.get_noun_phrase())
+        self.is_open=True
+        return True,1
+
+    def close_action(self,closer:GameObject):
+        if not self.is_open:
+            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already closed.")
+            return False,0
+        game_engine().writer.announce_action("You close the "+self.get_noun_phrase())
+        return True,1
+        
+
 #The sort of object one might put in their inventory
 class Carryable(GameObject):
     def __init__(self,base_noun="item"):
@@ -67,6 +120,13 @@ class Carryable(GameObject):
         #move this to player
         #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
     
+#The sort of object that can contain other objects
+class Container(GameObject,ContainerInterface,OpenableInterface):
+    def __init__(self,base_noun="container",is_openable=False,is_carriable=False):
+        super().__init__(base_noun=base_noun)
+        self.description="It's a container" #description of the container
+    
+
 #characters can move around and carry things
 class Character(GameObject):
     def __init__(self,base_noun="creature"):

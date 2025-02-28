@@ -31,6 +31,8 @@ class GameLocation(GameObject):
     def get_entrance_text(self):
         return "<u>"+self.get_room_name()+"</u>\n"+self.description
 
+    def get_entrance_image(self):
+        return "catacombs"
     
 class GameExit(GameObject):
     def __init__(self,destination:GameLocation=None,base_noun="exit"):
@@ -69,13 +71,14 @@ class GameExit(GameObject):
 #if lockable, they can be locked or unlocked with the appropriate key
 #they may be broken down with a kick
 #locks may be picked with lockpicks
-class DoorExit(GameExit):
+class DoorExit(GameExit,OpenableInterface):
     def __init__(self,destination:GameLocation=None):
         super().__init__(destination=destination,base_noun="door")
         self.lockable=False
         self.locked=False
         self.is_open=False
-        self.tags.add("door")
+        self.tags.add("openable")
+        self.tags.add("closable")
     
     def get_short_description(self):
         if self.direction is None:
@@ -87,24 +90,16 @@ class DoorExit(GameExit):
                 return "closed "+self.get_base_noun()+" to the "+self.direction
 
     def open_action(self,opener):
-        if self.is_open:
-            game_engine().writer.announce_failure("The door is already open.")
-            return False,0
-        game_engine().writer.announce_action("You open the "+self.get_noun_phrase())
-        self.is_open=True
-        if self.exit_pair is not None:
+        success,time=super().open_action(opener)
+        if success:
             self.exit_pair.is_open=True
-        return True,1
-    
+        return success,time
+
     def close_action(self,closer):
-        if not self.is_open:
-            game_engine().writer.announce_failure("The door is already closed.")
-            return False,0
-        game_engine().writer.announce_action("You close the "+self.get_noun_phrase())
-        self.is_open=False
-        if self.exit_pair is not None:
+        success,time=super().close_action(closer)
+        if success and self.exit_pair is not None:
             self.exit_pair.is_open=False
-        return True,1
+        return success,1
     
     def go_action(self,goer):
         if self.is_open:

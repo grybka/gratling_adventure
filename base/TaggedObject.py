@@ -1,5 +1,5 @@
 class TaggedObject:
-    def __init__(self,choice_word="TaggeObject"):
+    def __init__(self,choice_word="TaggeObject",**kwargs):
         self.tags=set() #set of strings
         self.choice_word=choice_word #word that represents the object
 

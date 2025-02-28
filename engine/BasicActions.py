@@ -42,7 +42,7 @@ register_action("exploration",ActionDrop())
 class ActionOpen(Action):
     #open (door)
     def __init__(self):
-        super().__init__(action_word="open",n_args=1,tag_requirements=[TagRequirements(required_tags=["door"])])
+        super().__init__(action_word="open",n_args=1,tag_requirements=[TagRequirements(required_tags=["openable"])])
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         door=arguments[0]
@@ -52,11 +52,42 @@ register_action("exploration",ActionOpen())
 class ActionClose(Action):
     #close (door)
     def __init__(self):
-        super().__init__(action_word="close",n_args=1,tag_requirements=[TagRequirements(required_tags=["door"])])
+        super().__init__(action_word="close",n_args=1,tag_requirements=[TagRequirements(required_tags=["closable"])])
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         door=arguments[0]
         return door.close_action(action_subject)[1]
 register_action("exploration",ActionClose())
 
+class ActionDeposit(Action): #put something in a container
+    #deposit (object) in (container)
+    def __init__(self):
+        super().__init__(action_word="deposit",n_args=2,tag_requirements=[TagRequirements(required_tags=["carryable"]),TagRequirements(required_tags=["container"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        obj=arguments[0]
+        container=arguments[1]
+        success,message=container.deposit_object(obj) #add the object to the container
+        if success:
+            game_engine().writer.announce_action("You put the "+obj.get_choice_word()+" in the "+container.get_choice_word())
+            action_subject.inventory.remove(obj) #remove the object from the player's inventory
+        else:
+            game_engine().writer.announce_failure(message)
+        return 1
+register_action("exploration",ActionDeposit())
 
+class ActionWithdraw(Action): #take something out of a container
+    #withdraw (object) from (container)
+    def __init__(self):
+        super().__init__(action_word="withdraw",n_args=2,tag_requirements=[TagRequirements(required_tags=["carryable"]),TagRequirements(required_tags=["container"])])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        obj=arguments[0]
+        container=arguments[1]
+        success,message=container.withdraw_object(obj) #remove the object from the container
+        if success:
+            game_engine().writer.announce_action("You take the "+obj.get_choice_word()+" from the "+container.get_choice_word())
+            action_subject.inventory.append(obj) #add the object to the player's inventory
+        else:
+            game_engine().writer.announce_failure(message)
+        return 1

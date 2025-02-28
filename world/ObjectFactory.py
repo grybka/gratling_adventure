@@ -8,13 +8,19 @@ class ObjectFactory:
 
     def get_creatable_objects(self):
         #return a list of objects that can be created
-        return ["item"]
+        return ["item","container"]
 
     def create_object(self,object_type,location):
-        new_object=Carryable()
-        new_object.name="new object"
-        new_object.description="a new object"
-        new_object.tags.add("debug")
+        if object_type=="item":
+            new_object=Carryable()
+            new_object.name="new object"
+            new_object.description="a new object"
+            new_object.tags.add("debug")
+        if object_type=="container":
+            new_object=Container()
+            new_object.name="new container"
+            new_object.description="a new container"
+            new_object.tags.add("debug")
         game_engine().assign_object_location(new_object,location)
         return new_object
         
