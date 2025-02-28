@@ -68,25 +68,36 @@ class GameObject(TaggedObject):
 #So Container or Carriable might be Implementations because it just guarantees that
 #they have certain functions, and an object could be one or the other or both
 #but maybe I dont need this and can just have a bit of redundant code
+
+#Everything that can store things is a container.  A chest is a container, a location is a container
+#Moving process goes as so:
+#source -> can it be removed?
+#destination -> can it be added?
+#move happens
+
 class ContainerInterface(TaggedObject):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.add_tag("container")
-        self.max_inventory_size=kwargs.get("max_inventory_size",10)
+        self.max_inventory_size=kwargs.get("max_inventory_size",None)
         self.inventory=[]
 
-    def deposit_object(self,object:GameObject):
-        #TODO REMOVE OBJECT FROM EXISTING LOCATION
-        if len(self.inventory)<self.max_inventory_size:
-            self.inventory.append(object)
-            object.location=self
+    def get_contents(self):
+        return self.inventory
+
+    def can_deposit_object(self,object:GameObject):
+        if self.max_inventory_size is None or len(self.inventory)<self.max_inventory_size:
             return True,""
-        else:
-            return False,"The container is full"
+        
+    def can_withdraw_object(self,object:GameObject):
+        return True,""
+
+    def deposit_object(self,object:GameObject):        
+        self.inventory.append(object)
+        object.location=self        
 
     def withdraw_object(self,object:GameObject):
-        self.inventory.remove(object)
-        return True,""
+        self.inventory.remove(object)        
 
 class OpenableInterface(TaggedObject):
     def __init__(self,**kwargs):
@@ -128,26 +139,12 @@ class Container(GameObject,ContainerInterface,OpenableInterface):
     
 
 #characters can move around and carry things
-class Character(GameObject):
+class Character(GameObject,ContainerInterface):
     def __init__(self,base_noun="creature"):
         super().__init__(base_noun=base_noun)
         self.description="It's a creature"
-        self.inventory=[] #list of objects in the player's inventory
-        self.max_inventory_size=10 #maximum number of objects that the player can carry
-        self.known_locations=[] #given as map positions
+        self.known_locations=set() #given as map positions
 
     def set_location(self,location):
         super().set_location(location)
-        self.known_locations.append(location.map_position)
-
-
-    def add_to_inventory(self,object:Carryable):
-        if len(self.inventory)<self.max_inventory_size:
-            self.inventory.append(object)
-            return True,""
-        else:
-            return False,"You can't carry any more items"
-        
-    def remove_from_inventory(self,object:Carryable):
-        self.inventory.remove(object)
-        return True,""
+        self.known_locations.append(location.map_position)    

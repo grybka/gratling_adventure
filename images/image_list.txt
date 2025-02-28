@@ -1,2 +1,13 @@
 #to the best of my understanding, these are all public domain.  Not that it matters, this is for private use
 catacombs https://commons.wikimedia.org/wiki/File:Catacombs_(PSF).jpg 
+arcade https://commons.wikimedia.org/wiki/File:Arcade_(PSF).png
+stoa https://commons.wikimedia.org/wiki/File:Stoa_(PSF).png
+romanesque https://commons.wikimedia.org/wiki/File:Romanesque_(PSF).png
+font https://commons.wikimedia.org/wiki/File:Stoup_(PSF).png
+impluvium https://commons.wikimedia.org/wiki/File:Impluvium_(PSF).png
+aisle https://commons.wikimedia.org/wiki/File:Aisle_(PSF).png
+portcullis https://commons.wikimedia.org/wiki/File:Portcullis_(PSF).png
+atrium https://commons.wikimedia.org/wiki/File:Atrium_(PSF).png
+dark_stairs https://www.oldbookillustrations.com/site/assets/high-res/1896/large-pale-light-768.jpg
+l-door https://commons.wikimedia.org/wiki/File:L-door.png
+opening_1 https://commons.wikimedia.org/wiki/File:Portada_al_repl%C3%A0_superior_de_l%27escala_del_palau_de_Moss%C3%A9n_Sorell_de_Val%C3%A8ncia,_dibuixat_per_Asenjo.jpg

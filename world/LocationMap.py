@@ -85,6 +85,7 @@ class LocationMap:
         return (x,y)
 
     def get_map_image(self,location,known_locations=None):
+        print("known locations {}".format(known_locations))
         width=(self.room_width+self.room_spacing)*self.max_grid_size+self.room_spacing
         height=(self.room_width+self.room_spacing)*self.max_grid_size+self.room_spacing
         my_surface=pygame.surface.Surface((width,height))

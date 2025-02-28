@@ -57,7 +57,7 @@ class TextWriter:
         my_text+=self.player_object.location.get_entrance_text()+"\n"
         my_text+="Visible Exits: "
         my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
-        if len(self.player_object.location.objects)>1:
+        if len(self.player_object.location.get_contents())>1:
             my_text+="You see here: "
             for obj in self.player_object.location.objects:
                 if obj!=self.player_object:  #don't list the player in the room
@@ -132,7 +132,7 @@ class GameEngine(AbstractEngine):
     def get_relevant_objects(self):
         ret=[self.player_object,self.player_object.location]
         ret.extend(self.player_object.location.exits)
-        ret.extend(self.player_object.location.objects)
+        ret.extend(self.player_object.location.get_contents())
         ret.extend(self.player_object.inventory)
         #get objects in the current location
         #objects=self.player_location.get_objects()
@@ -159,9 +159,11 @@ class GameEngine(AbstractEngine):
 
     def assign_object_location(self,object:GameObject,location:GameLocation):
         #So I can make announcemnets
-        object.set_location(location)
-        location.objects.append(object)
+        #object.set_location(location)
+        #location.objects.append(object)
+        location.deposit_object(object)
         if object==self.player_object:
+            self.player_object.known_locations.add(location.map_position)
             self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )     
             self.display.update_map_position(self.world_map.get_map_image_location(location))
             self.writer.describe_room_on_entrance()
@@ -172,10 +174,9 @@ class GameEngine(AbstractEngine):
         else:
             self.writer.announce_action("They've changed something")
 
-    def character_arrives(self,character:Character,location:GameLocation):
-        character.set_location(location)
-        location.objects.append(character)
-        if character==self.player_object:        
+    def character_arrives(self,character:Character,location:GameLocation):                
+        if character==self.player_object:     
+            self.player_object.known_locations.add(location.map_position)   
             self.writer.describe_room_on_entrance()    
             if self.play_mode==PlayMode.DEBUG:
                 self.display.update_map(self.world_map.get_map_image(location,None)  )   
