@@ -10,6 +10,8 @@ class ActionGo(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         exit=arguments[0]
         success,time=exit.go_action(action_subject)
+        if success:
+            game_engine().character_arrives(game_engine().player_object,exit.destination)
         return time
 register_action("exploration",ActionGo())
 
@@ -19,23 +21,9 @@ class ActionTake(Action):
         super().__init__(action_word="take",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
-        obj=arguments[0]
-        origin=obj.location
-        destination=action_subject
-        #first verify it is possible        
-        success,reason=destination.can_deposit_object(obj)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return 0        
-        success,reason=origin.can_withdraw_object(obj)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return False,0        
-        #do the actual move
-        origin.withdraw_object(obj)
-        destination.deposit_object(obj)
-        #make announcements
-        game_engine().writer.announce_action("You take the "+obj.get_noun_phrase())        
+        success=game_engine().transfer_object(arguments[0],action_subject)
+        if success:
+            game_engine().writer.announce_action("You take the "+arguments[0].get_noun_phrase())     
         return 1
 register_action("exploration",ActionTake())
 
@@ -45,23 +33,9 @@ class ActionDrop(Action):
         super().__init__(action_word="drop",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
-        obj=arguments[0]
-        origin=obj.location
-        destination=action_subject.location
-        #first verify it is possible        
-        success,reason=destination.can_deposit_object(obj)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return 0        
-        success,reason=origin.can_withdraw_object(obj)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return False,0        
-        #do the actual move
-        origin.withdraw_object(obj)
-        destination.deposit_object(obj)
-        #make announcements
-        game_engine().writer.announce_action("You drop the "+obj.get_noun_phrase())        
+        success=game_engine().transfer_object(arguments[0],action_subject.location)
+        if success:
+            game_engine().writer.announce_action("You drop the "+arguments[0].get_noun_phrase())        
         return 1
 register_action("exploration",ActionDrop())
 
@@ -93,12 +67,9 @@ class ActionDeposit(Action): #put something in a container
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         obj=arguments[0]
         container=arguments[1]
-        success,message=container.deposit_object(obj) #add the object to the container
+        success=game_engine().transfer_object(arguments[0],arguments[1])
         if success:
             game_engine().writer.announce_action("You put the "+obj.get_choice_word()+" in the "+container.get_choice_word())
-            action_subject.inventory.remove(obj) #remove the object from the player's inventory
-        else:
-            game_engine().writer.announce_failure(message)
         return 1
 register_action("exploration",ActionDeposit())
 
@@ -110,10 +81,7 @@ class ActionWithdraw(Action): #take something out of a container
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         obj=arguments[0]
         container=arguments[1]
-        success,message=container.withdraw_object(obj) #remove the object from the container
+        success=game_engine().transfer_object(arguments[0],action_subject)
         if success:
             game_engine().writer.announce_action("You take the "+obj.get_choice_word()+" from the "+container.get_choice_word())
-            action_subject.inventory.append(obj) #add the object to the player's inventory
-        else:
-            game_engine().writer.announce_failure(message)
         return 1

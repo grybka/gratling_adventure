@@ -157,6 +157,23 @@ class GameEngine(AbstractEngine):
     def announce_failure(self,text):
         self.writer.announce_failure(text)
 
+    def transfer_object(self,object:GameObject,destination:GameLocation):
+        origin=object.location
+        #first verify it is possible        
+        success,reason=destination.can_deposit_object(object)
+        if not success:
+            self.writer.announce_failure(reason)
+            return False      
+        success,reason=origin.can_withdraw_object(object)
+        if not success:
+            self.writer.announce_failure(reason)
+            return False        
+        #do the actual move
+        origin.withdraw_object(object)
+        destination.deposit_object(object)
+        #make announcements (handle that elsewhere
+        return True
+
     def assign_object_location(self,object:GameObject,location:GameLocation):
         #So I can make announcemnets
         #object.set_location(location)

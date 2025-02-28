@@ -45,17 +45,10 @@ class GameObject(TaggedObject):
     
     def get_short_description(self):
         return self.short_description or self.noun_phrase or self.base_noun
-        
-#    def get_reference(self,specific=False):
-#        choice_word=self.get_choice_word()
-#        if specific:
-#            return "the "+choice_word
-#        else:
-#            if choice_word[0] in "aeiou":
-#                return "an "+choice_word
-#            else:
-#                return "a "+choice_word
             
+    def get_accessible_objects(self):
+        return []
+    
     def set_location(self,location):
         self.location=location
 
@@ -84,10 +77,14 @@ class ContainerInterface(TaggedObject):
 
     def get_contents(self):
         return self.inventory
+    
+    def get_accessible_objects(self):
+        return self.inventory
 
     def can_deposit_object(self,object:GameObject):
         if self.max_inventory_size is None or len(self.inventory)<self.max_inventory_size:
             return True,""
+        return False,"The "+self.get_noun_phrase()+" is full."
         
     def can_withdraw_object(self,object:GameObject):
         return True,""

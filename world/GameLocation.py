@@ -6,7 +6,7 @@ from base.AbstractEngine import AbstractEngine,game_engine
 class GameLocation(GameObject,ContainerInterface):
     def __init__(self,base_noun="room"):
         super().__init__(base_noun=base_noun)
-        #self.objects=[] #list of objects in the location
+        self.objects=[] #list of objects in the location
         self.exits=[] #list of connections to other locations
         self.description="It's a room" #description of the location
         self.generation_data={} #used in generation
@@ -22,8 +22,8 @@ class GameLocation(GameObject,ContainerInterface):
     def get_room_name(self):
         return self.get_short_description()
 
-    #def get_objects(self):
-        #return self.objects
+    def get_objects(self):
+        return self.objects
 
     def get_description(self):
         return self.description
@@ -59,27 +59,11 @@ class GameExit(GameObject):
             return self.get_base_noun()+" to the "+self.direction
 
     def go_action(self,goer):
-        origin=goer.location
-        destination=self.destination
-        #first verify it is possible
-        if destination is None:
-            game_engine().writer.announce_failure("You can't go that way.")
-            return False,0
-        success,reason=destination.can_deposit_object(goer)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return False,0        
-        success,reason=origin.can_withdraw_object(goer)
-        if not success:
-            game_engine().writer.announce_failure(reason)
-            return False,0        
-        #do the actual move
-        origin.withdraw_object(goer)
-        destination.deposit_object(goer)
-        #make announcements
-        game_engine().writer.announce_action("You go through the "+self.get_noun_phrase())        
-        game_engine().character_arrives(goer,self.destination) #add the character to the new location
-        return True,1
+        success=game_engine().transfer_object(goer,self.destination)
+        if success:
+            game_engine().writer.announce_action("You go through the "+self.get_noun_phrase())
+            return True,1
+        return False,0
 
 #DoorExits can be open or closed
 #if lockable, they can be locked or unlocked with the appropriate key
