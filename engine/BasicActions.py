@@ -72,6 +72,11 @@ class ActionOpen(Action):
         super().__init__(action_word="open",n_args=1,tag_requirements=[TagRequirements(required_tags=["openable"])])
     
     def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        openable=arguments[0]
+        if openable.is_open:
+            return ActionPossibility.IMPOSSIBLE
+        if not openable.can_open(action_subject)[0]:
+            return ActionPossibility.POSSIBLE_WITH_MODIFICATIONS
         return ActionPossibility.POSSIBLE
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
@@ -150,7 +155,7 @@ register_action("exploration",ActionWait())
 class ActionExamine(Action):
     #examine (object)
     def __init__(self):
-        super().__init__(action_word="examine",n_args=1,tag_requirements=[TagRequirements(required_tags=[])])
+        super().__init__(action_word="examine",n_args=1,tag_requirements=[TagRequirements(required_tags=["examinable"])])
     
     def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         return ActionPossibility.POSSIBLE
@@ -160,4 +165,54 @@ class ActionExamine(Action):
         return 0
 register_action("exploration",ActionExamine())
 
+class ActionKick(Action):
+    #kick (object)
+    def __init__(self):
+        super().__init__(action_word="kick",n_args=1,tag_requirements=[TagRequirements(required_tags=["kickable"])])
+    
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return ActionPossibility.POSSIBLE
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        arguments[0].kick_action(action_subject)
+        #game_engine().writer.announce_action("You kick the "+arguments[0].get_noun_phrase())
+        return 1
+register_action("exploration",ActionKick())
 
+class ActionUnlock(Action):
+    #unlock (object) with (key)
+    def __init__(self):
+        super().__init__(action_word="unlock",n_args=2,tag_requirements=[TagRequirements(required_tags=["unlockable"]),TagRequirements(required_tags=["key"])])
+    
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        if not arguments[0].lock_exists():
+            return ActionPossibility.IMPOSSIBLE
+        if not arguments[0].is_locked:
+            return ActionPossibility.IMPOSSIBLE
+        success,reason=arguments[0].can_unlock(action_subject,arguments[1])
+        if not success:
+            return ActionPossibility.POSSIBLE_WITH_MODIFICATIONS
+        return ActionPossibility.POSSIBLE
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return arguments[0].unlock_action(action_subject,arguments[1])[1]
+register_action("exploration",ActionUnlock())
+    
+class ActionLock(Action):
+    #lock (object) with (key)
+    def __init__(self):
+        super().__init__(action_word="lock",n_args=2,tag_requirements=[TagRequirements(required_tags=["lockable"]),TagRequirements(required_tags=["key"])])
+    
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        if not arguments[0].lock_exists():
+            return ActionPossibility.IMPOSSIBLE
+        if arguments[0].is_locked:
+            return ActionPossibility.IMPOSSIBLE
+        success,reason=arguments[0].can_lock(action_subject,arguments[1])
+        if not success:
+            return ActionPossibility.POSSIBLE_WITH_MODIFICATIONS
+        return ActionPossibility.POSSIBLE
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return arguments[0].lock_action(action_subject,arguments[1])[1]
+register_action("exploration",ActionLock())

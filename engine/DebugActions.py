@@ -36,7 +36,7 @@ class DebugActionCreate(Action):
         possible_fills=[]
         for object in creatable_objects:
             possible_fills.append([TaggedObject(choice_word=object)])
-        return possible_fills
+        return possible_fills,[]
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         obj_name=arguments[0].get_choice_word()

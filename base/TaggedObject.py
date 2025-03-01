@@ -6,6 +6,9 @@ class TaggedObject:
     def add_tag(self,tag):
         self.tags.add(tag)
 
+    def has_tag(self,tag):
+        return tag in self.tags
+
     def get_choice_word(self):
         return self.choice_word
 

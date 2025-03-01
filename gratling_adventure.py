@@ -2,6 +2,13 @@ from display.Display import DisplayInterface
 import pygame
 import pygame_gui
 from engine.GameStates import GameState, GameStateManager, PlayGameState
+import sys
+import random
+
+n = len(sys.argv)
+if n == 2:
+    #use random seed
+    random.seed(sys.argv[1])
 
 pygame.init()
 

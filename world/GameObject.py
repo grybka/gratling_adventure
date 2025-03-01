@@ -102,26 +102,105 @@ class ContainerInterface(TaggedObject):
     def withdraw_object(self,object:GameObject):
         self.inventory.remove(object)        
 
+class KeyInterface(GameObject):
+    def __init__(self,base_noun="key"):
+        super().__init__(base_noun=base_noun)
+        self.add_tag("key")
+        self.add_tag("carryable")
+        self.description="It's a key" #description of the key
+        self.my_lock_id=None #the lock that this key opens    
+
+class LockableInterface(TaggedObject):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.add_tag("lockable")
+        self.add_tag("unlockable")
+        self.is_locked=False
+        self.lock_id=None #if it is none, there is no lock, and this class is dormant
+
+    def lock_exists(self):
+        return self.lock_id is not None
+
+    def can_lock(self,closer:GameObject,key:KeyInterface):
+        if self.is_locked:
+            return False,"The "+self.get_noun_phrase()+" is already locked."        
+        if key.my_lock_id!=self.lock_id:
+            return False,"The "+key.get_noun_phrase()+" does not fit the lock."
+        return True,""
+    
+    def can_unlock(self,opener:GameObject,key:KeyInterface):
+        if not self.is_locked:
+            return False,"The "+self.get_noun_phrase()+" is not locked."
+        if key.my_lock_id!=self.lock_id:
+            return False,"The "+key.get_noun_phrase()+" does not fit the lock."
+        return True,""
+    
+    def unlock_action(self,opener:GameObject,key:KeyInterface):
+        if not self.is_locked:
+            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is not locked.")
+            return False,0
+        if key.my_lock_id!=self.lock_id:
+            game_engine().writer.announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
+            return False,0
+        game_engine().writer.announce_action("You unlock the "+self.get_noun_phrase())
+        self.is_locked=False
+        return True,1
+    
+    def lock_action(self,closer:GameObject,key:KeyInterface):
+        if self.is_locked:
+            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already locked.")
+            return False,0
+        if key.my_lock_id!=self.lock_id:
+            game_engine().writer.announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
+            return False,0
+        game_engine().writer.announce_action("You lock the "+self.get_noun_phrase())
+        self.is_locked=True
+        return True,1
+
 #do I put locks and traps here?  Or do I have a
 #LockedOpenableInterface?  Lets suppose it all goes here.
 #An openable object can also be:
 # - stuck
 # - locked (needs lock object)
 # - trapped (needs trap object)
-class OpenableInterface(TaggedObject):
+class OpenableInterface(LockableInterface,TaggedObject):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.add_tag("openable")
         self.add_tag("closable")
+        self.add_tag("kickable")
         self.is_open=False
         self.is_stuck=False
         self.is_locked=False
-        self.lock_object=None
+        self.lock_id=None #if it is none, there is no lock
         self.is_trapped=False
 
-    def open_action(self,opener:GameObject):
+    def can_open(self,opener:GameObject):
         if self.is_open:
-            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already open.")
+            return False,"The "+self.get_noun_phrase()+" is already open."
+        if self.is_stuck:
+            return False,"The "+self.get_noun_phrase()+" is stuck."
+        if self.is_locked:
+            return False,"The "+self.get_noun_phrase()+" is locked."
+        #print("open,locked,stuck",self.is_open,self.is_locked,self.is_stuck)
+        return True,""
+    
+   
+    
+    def kick_action(self,opener:GameObject):
+        if not self.has_tag("kickable"):
+            game_engine().writer.announce_failure("You can't kick the "+self.get_noun_phrase())
+            return False,0
+        game_engine().writer.announce_action("You kick the "+self.get_noun_phrase())
+        self.is_stuck=False
+        return True
+    
+    
+
+    def open_action(self,opener:GameObject):            
+        possible,message=self.can_open(opener)        
+        if not possible:
+            game_engine().writer.announce_failure(message)
             return False,0
         game_engine().writer.announce_action("You open the "+self.get_noun_phrase())
         self.is_open=True
@@ -148,21 +227,5 @@ class Carryable(GameObject):
         self.description="It's a carryable object" #description of the carryable
         #move this to player
         #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
-    
-#The sort of object that can contain other objects
-#class LiddedContainer(GameObject,ContainerInterface,OpenableInterface):
-#    def __init__(self,base_noun="lidded_container",is_openable=False,is_carriable=False):
-#        super().__init__(base_noun=base_noun)
-#        self.description="It's a lidded container" #description of the container
-    
 
-#characters can move around and carry things
-class Character(ContainerInterface,GameObject):
-    def __init__(self,base_noun="creature"):
-        super().__init__(base_noun=base_noun)
-        self.description="It's a creature"
-        self.known_locations=set() #given as map positions
 
-    def set_location(self,location):
-        super().set_location(location)
-        self.known_locations.append(location.map_position)    

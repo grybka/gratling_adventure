@@ -1,4 +1,5 @@
 from world.GameObject import *
+from world.Character import *
 
 class Player(Character):
     def __init__(self):
@@ -13,6 +14,7 @@ class Player(Character):
         ret={"inventory":[]}
         for obj in self.inventory:
             ret["inventory"].append(obj.get_short_description())
+        ret["stats"]=self.stats.get_stat_string()
         return ret
     
     def get_accessible_objects(self):

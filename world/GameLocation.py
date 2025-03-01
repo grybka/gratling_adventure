@@ -86,12 +86,11 @@ class GameExit(GameObject):
 #locks may be picked with lockpicks
 class DoorExit(GameExit,OpenableInterface):
     def __init__(self,destination:GameLocation=None):
-        super().__init__(destination=destination,base_noun="door")
-        self.lockable=False
-        self.locked=False
+        super().__init__(destination=destination,base_noun="door")        
         self.is_open=False
-        self.tags.add("openable")
-        self.tags.add("closable")
+        self.is_stuck=False
+        self.lock_id=1
+        self.is_locked=True
 
     def is_passable(self):
         return self.is_open

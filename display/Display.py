@@ -255,6 +255,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
 
     def update_status(self,status):
         my_text="Turn: "+str(status["turn_number"])+"\n"
+        my_text+=status["stats"]+"\n"
         my_text+="Inventory:\n"
         for item in  status["inventory"]:
             my_text+=item+"\n"

@@ -1,4 +1,5 @@
 from world.GameObject import *
+from world.Character import *
 import random
 
 #The sort of object that can contain other objects
@@ -49,3 +50,10 @@ class BasicNPC(Character):
                     game_engine().writer.announce_action(self.get_noun_phrase()+" enters the room")
         else:
             game_engine().writer.announce_failure(self.get_noun_phrase()+" fails to leave the room")
+
+class BasicKey(KeyInterface,GameObject):
+    def __init__(self,base_noun="key"):
+        super().__init__(base_noun=base_noun)
+        self.description="It's a key" #description of the key
+        self.my_lock_id=1
+    

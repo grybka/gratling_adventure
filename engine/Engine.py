@@ -86,8 +86,12 @@ class GameEngine(AbstractEngine):
         self.assign_object_location(test_npc,self.world_map.get_starting_room())
 
         #start game
-        self.present_current_choices()
         self.turn_number=0
+        status=self.player_object.get_status_object()
+        status["turn_number"]=self.turn_number
+        self.display.update_status(status)        
+        self.present_current_choices()
+        
 
     def post_text(self,text):
         self.display.update_text(text)
@@ -113,8 +117,8 @@ class GameEngine(AbstractEngine):
         elif self.play_mode==PlayMode.DEBUG:
             actions=get_actions("debug")
             relevant_objects=self.get_relevant_objects()
-            for action in actions:
-                possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
+            for action in actions:                
+                possible_fills,almost_possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
                 #TODO test if possible
                 for fill in possible_fills:
                     all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))

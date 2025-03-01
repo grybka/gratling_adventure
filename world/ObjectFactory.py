@@ -9,7 +9,7 @@ class ObjectFactory:
 
     def get_creatable_objects(self):
         #return a list of objects that can be created
-        return ["item","container"]
+        return ["item","container","key"]
 
     def create_object(self,object_type,location):
         if object_type=="item":
@@ -21,6 +21,11 @@ class ObjectFactory:
             new_object=BasicContainer()
             new_object.name="new container"
             new_object.description="a new container"
+            new_object.tags.add("debug")
+        if object_type=="key":
+            new_object=BasicKey()
+            new_object.name="new key"
+            new_object.description="a new key"
             new_object.tags.add("debug")
         game_engine().assign_object_location(new_object,location)
         return new_object
