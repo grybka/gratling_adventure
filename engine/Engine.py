@@ -98,10 +98,12 @@ class GameEngine(AbstractEngine):
             relevant_objects=self.get_relevant_objects()
             #print("n relevant objects",len(relevant_objects))
             for action in actions:
-                possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
+                possible_fills,almost_possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
                 #TODO test if possible
                 for fill in possible_fills:
-                    all_possible_actions.append((action,fill))
+                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))
+                for fill in almost_possible_fills:
+                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE_WITH_MODIFICATIONS))
             #Add any special actions for the engine
             #all_possible_actions.append( (ActionEnterDebugMode(),[]) )
         elif self.play_mode==PlayMode.DEBUG:
@@ -111,18 +113,22 @@ class GameEngine(AbstractEngine):
                 possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
                 #TODO test if possible
                 for fill in possible_fills:
-                    all_possible_actions.append((action,fill))
+                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))
 
 
 
 
         offered_actions={}
         word_choices=[]
-        for action,fill in all_possible_actions:
+        word_bad_choices=[]
+        for action,fill,possibility in all_possible_actions:
             choice=action.to_string_list(self.player_object,fill)
-            offered_actions[",".join(choice)]=(action,fill)
-            word_choices.append(choice)
-        self.display.update_choices(word_choices)
+            offered_actions[",".join(choice)]=(action,fill,possibility)
+            if possibility==ActionPossibility.POSSIBLE:
+                word_choices.append(choice)
+            else:
+                word_bad_choices.append(choice)
+        self.display.update_choices(word_choices,word_bad_choices)
         self.last_presented_actions=offered_actions       
 
     def get_relevant_objects(self):
@@ -208,7 +214,6 @@ class GameEngine(AbstractEngine):
         self.display.update_map(self.world_map.get_map_image(self.player_object.location,None)  )   
 
         self.display.update_text("Debug mode activated\n")
-        #self.display.update_choices(template.get_debug_choices())
 
     def exit_debug_mode(self):
         self.play_mode=PlayMode.EXPLORATION

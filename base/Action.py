@@ -1,4 +1,10 @@
 from base.TaggedObject import TaggedObject,TagRequirements
+import enum
+
+class ActionPossibility(enum.Enum):
+    POSSIBLE=1
+    IMPOSSIBLE=2
+    POSSIBLE_WITH_MODIFICATIONS=3
 
 class Action:
     def __init__(self,action_word="unknown action",n_args=0,tag_requirements=[]):
@@ -24,8 +30,9 @@ class Action:
         #must be overriden
         return self.tag_requirements
 
+
     def get_possible_fills(self,action_subject:TaggedObject,relevant_objects:list[TaggedObject]):
-        #return a list of possible fills for each slot
+        #return a list of possible fills for each slot, a list of possible with modifications fills
         #this will be used to generate the action
         #the engine
         #response is in the form [ [slot1,slot2,...],[slot1,slot2,...],...]
@@ -47,11 +54,15 @@ class Action:
                     next_ret.append(fill+[x])
             ret=next_ret
         possible_ret=[]
+        possible_with_mods_ret=[]
         for possibility in ret:
-            if self.is_action_possible(action_subject,possibility):
+            result=self.is_action_possible(action_subject,possibility)
+            if result==ActionPossibility.POSSIBLE:
                 possible_ret.append(possibility)
+            elif result==ActionPossibility.POSSIBLE_WITH_MODIFICATIONS:
+                possible_with_mods_ret.append(possibility)
         #print("ret is {}".format(ret))
-        return possible_ret
+        return possible_ret,possible_with_mods_ret
     
     def to_string_list(self,action_subject:TaggedObject,arguments:list[TaggedObject]): #arguments is a list of objects
         #
@@ -67,9 +78,9 @@ class Action:
         return ret
 
 
-    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]) -> ActionPossibility:
         #must be overridden
-        return True
+        return ActionPossibility.POSSIBLE
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         #needs to have access to the engine for this

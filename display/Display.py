@@ -7,43 +7,50 @@ from pygame_gui.elements.ui_text_box import UITextBox
 from pygame_gui.elements.ui_button import UIButton
 from pygame_gui.elements.ui_image import UIImage
 from base.AbstractDisplay import AbstractDisplay
+from pygame_gui.core import ObjectID
 import yaml
 import os
 
 #a multirow array of text buttons
 class ButtonArray(UIContainer):
 #class ButtonArray(UIPanel):
-    def __init__(self,rect,manager,container=None,anchors=None,button_labels=[]):
+    def __init__(self,rect,manager,container=None,anchors=None,button_labels=[],bad_button_labels=[]):
         self.padding=5
         self.button_height=30
         self.ui_manager=manager
         super().__init__(relative_rect=rect,container=container,manager=manager,anchors=anchors)
         #self.button_labels=["a 1","bb 2","ccc 3","dddd 4","eeeee 5","Button 6","Button 7","Button 8","Button 9","Button 10"]
         self.button_labels=button_labels
+        self.bad_button_labels=bad_button_labels
         self.buttons=[]
         self._rebuild_buttons()
 
-    def rebuild_buttons(self,button_labels):
-        for button in self.buttons:
-            button.kill()
-        self.buttons=[]
-        self.button_labels=button_labels
-        self._rebuild_buttons()
+    #def rebuild_buttons(self,button_labels):
+    #    for button in self.buttons:
+    #        button.kill()
+    ##    self.buttons=[]
+    #    self.button_labels=button_labels
+    #    self._rebuild_buttons()
 
     def _rebuild_buttons(self):
         row_start=self.padding
         last_x=0
         last_button=None
         for label in self.button_labels:
-            new_button=UIButton(relative_rect=Rect((self.padding+last_x,row_start+self.padding),(-1,self.button_height)),text=label,manager=self.ui_manager,container=self,anchors={"left":"left"})
+            new_button=UIButton(relative_rect=Rect((self.padding+last_x,row_start+self.padding),(-1,self.button_height)),text=label,manager=self.ui_manager,container=self,anchors={"left":"left"},object_id="#word_button")
             last_x=new_button.get_relative_rect()[0]+new_button.get_relative_rect()[2]
             self.buttons.append(new_button)
-            last_button=new_button
-            #print("last button rect=",last_button.get_relative_rect())
-            #print("last button rect=",last_button.get_relative_rect().right)
-
-            #print("self.width=",self.rect.width)
-
+            last_button=new_button            
+            if last_button.get_relative_rect().right>self.rect.width-self.padding:
+                row_start+=self.button_height+self.padding
+                last_x=0
+                last_button.set_relative_position((self.padding,row_start+self.padding))
+                last_x=last_button.get_relative_rect()[0]+last_button.get_relative_rect()[2]
+        for label in self.bad_button_labels:
+            new_button=UIButton(relative_rect=Rect((self.padding+last_x,row_start+self.padding),(-1,self.button_height)),text=label,manager=self.ui_manager,container=self,anchors={"left":"left"},object_id="#bad_word_button")            
+            last_x=new_button.get_relative_rect()[0]+new_button.get_relative_rect()[2]
+            self.buttons.append(new_button)
+            last_button=new_button            
             if last_button.get_relative_rect().right>self.rect.width-self.padding:
                 row_start+=self.button_height+self.padding
                 last_x=0
@@ -69,7 +76,7 @@ class InputPanel(UIPanel):
         back_button_width=100
         self.back_button=UIButton(relative_rect=Rect((self.get_relative_rect().width-back_button_width-2*self.padding,self.padding),(back_button_width,40)),text="Back",manager=self.ui_manager,container=self,anchors={"top":"top","left":"left"})
         
-    def update_info(self,words,button_labels):
+    def update_info(self,words,button_labels,bad_button_labels=[]):
         rect=self.get_relative_rect()
         if self.words_part is not None:
             self.words_part.kill()
@@ -80,7 +87,7 @@ class InputPanel(UIPanel):
         back_button_width=100
         button_part_width=rect.width-button_part_xstart-back_button_width-2*self.padding
 
-        self.button_part=ButtonArray(Rect((button_part_xstart,self.padding),(button_part_width,rect.height)),container=self,manager=self.ui_manager,anchors={"top":"top","left":"left"},button_labels=button_labels)
+        self.button_part=ButtonArray(Rect((button_part_xstart,self.padding),(button_part_width,rect.height)),container=self,manager=self.ui_manager,anchors={"top":"top","left":"left"},button_labels=button_labels,bad_button_labels=bad_button_labels)
 
     def process_event(self,event):
         return False
@@ -224,7 +231,8 @@ class DisplayInterface(UIPanel,AbstractDisplay):
 
         #input space
         self.input_panel = InputPanel(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_3)), manager=manager, container=self, anchors={"top_target": self.description_panel})
-        self.choices=[]
+        self.choices=[] #choices that will be possible
+        self.bad_choices=[] #choices that will be impossible but you might want to know why
         self.words_picked=[]
         self.choice_to_engine=None
 
@@ -234,11 +242,12 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         if self.description_panel.scroll_bar is not None:
             self.description_panel.scroll_bar.set_scroll_from_start_percentage(1.0)
 
-    def update_choices(self,choices):
+    def update_choices(self,choices,bad_choices=[]):
         #reset choices and words picked
         self.input_panel.back_button.hide()
         self.words_picked=[]
         self.choices=choices
+        self.bad_choices=bad_choices
         self.update_words()
 
     def update_image(self,image):
@@ -275,20 +284,29 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         #self.map_image_element.set_image(self.map_image)
 
     def get_remaining_choices(self):
+        print("words picked ",self.words_picked)
+        print("choices ",self.choices)
+        print("bad choices ",self.bad_choices)
         remaining_choices=[]
         for choice in self.choices:
             if string_list_matches_so_far(choice,self.words_picked):
                 remaining_choices.append(choice)
-        return remaining_choices
+        remaining_bad_choices=[]
+        for choice in self.bad_choices:
+            if string_list_matches_so_far(choice,self.words_picked):
+                remaining_bad_choices.append(choice)
+        print("returning ",remaining_choices," and ",remaining_bad_choices)
+        return remaining_choices,remaining_bad_choices
 
     def word_picked(self,word_chosen):
         self.input_panel.back_button.show()
-
         self.words_picked.append(word_chosen)
-        remaining_choices=self.get_remaining_choices()
-        #print("remaining choices",remaining_choices)
+        remaining_choices,remaining_bad_choices=self.get_remaining_choices()       
+        all_choices=remaining_choices+remaining_bad_choices         
+        print("remaining choices",remaining_choices," and ",remaining_bad_choices)
+        #print("len remaining choices")
         #if we've selected a choice,  we're done
-        if len(remaining_choices[0])==len(self.words_picked):
+        if len(all_choices[0])==len(self.words_picked):
             #print("Action chosen",self.words_picked)
             self.choice_to_engine=self.words_picked
             self.update_choices([])
@@ -296,13 +314,20 @@ class DisplayInterface(UIPanel,AbstractDisplay):
 
 
     def update_words(self):
-        #find all choices for which the words are the same sa words_picked
+        word_choices,word_bad_choices=self.get_remaining_choices()        
+
+        #find all choices for which the words are the same sa words_picked        
         first_words=set()
-        for choice in self.get_remaining_choices():
+        for choice in word_choices:
             first_words.add(choice[len(self.words_picked)])
+        first_words_bad=set()
+        for choice in word_bad_choices:
+            first_words_bad.add(choice[len(self.words_picked)])
+        first_words_bad=first_words_bad-first_words
+
         #print("first words",first_words)
         picked_words=str.join(" ",self.words_picked)
-        self.input_panel.update_info(picked_words,list(first_words))
+        self.input_panel.update_info(picked_words,list(first_words),list(first_words_bad))
 
 
         
