@@ -55,6 +55,8 @@ class GameExit(GameObject):
         #stuff for words
         self.direction=None #the direction that this exit leads to
 
+    def is_passable(self):
+        return True
 
     def get_noun_phrase(self):
         if self.direction is None:
@@ -87,6 +89,9 @@ class DoorExit(GameExit,OpenableInterface):
         self.is_open=False
         self.tags.add("openable")
         self.tags.add("closable")
+
+    def is_passable(self):
+        return self.is_open
     
     def get_short_description(self):
         if self.direction is None:

@@ -15,7 +15,7 @@ background = pygame.Surface(window_size)
 
 background.fill(pygame.Color('#000000'))
 
-manager = pygame_gui.UIManager(window_size)
+manager = pygame_gui.UIManager(window_size, 'theme.json')
 
 clock = pygame.time.Clock()
 

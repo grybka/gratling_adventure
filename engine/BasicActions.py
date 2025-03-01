@@ -1,12 +1,18 @@
 from base.Action import Action,register_action
 from base.TaggedObject import TaggedObject,TagRequirements
 from base.AbstractEngine import AbstractEngine,game_engine
+from base.Action import ActionPossibility
 
 class ActionGo(Action):
     #go (exit)
     def __init__(self):
-        super().__init__(action_word="go",n_args=1,tag_requirements=[TagRequirements(required_tags=["exit"])])
-
+        super().__init__(action_word="go",n_args=1,tag_requirements=[TagRequirements(required_tags=["exit"])])    
+        
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]) -> ActionPossibility:
+        exit=arguments[0]        
+        if not exit.is_passable():
+            return ActionPossibility.POSSIBLE_WITH_MODIFICATIONS
+        return ActionPossibility.POSSIBLE        
     
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
@@ -21,16 +27,16 @@ class ActionTake(Action):
     #take (object) off the ground
     def __init__(self):
         super().__init__(action_word="take",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
-    
-    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]) -> ActionPossibility:
         item=arguments[0]
         #I can only take objects in my room
         if action_subject.location != item.location:
-            return False
+            return ActionPossibility.IMPOSSIBLE
         #I cannot take myself
         if action_subject==item:
-            return False
-        return True
+            return ActionPossibility.IMPOSSIBLE            
+        return ActionPossibility.POSSIBLE                
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         success=game_engine().transfer_object(arguments[0],action_subject)
@@ -48,8 +54,9 @@ class ActionDrop(Action):
         item=arguments[0]
         #I cannot drop things I do not have
         if item.location!=action_subject:
-            return False
-        return True
+            return ActionPossibility.IMPOSSIBLE        
+        return ActionPossibility.POSSIBLE
+        
 
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
@@ -90,8 +97,8 @@ class ActionDeposit(Action): #put something in a container
         container=arguments[1]
         #I cannot deposit things I do not have
         if item.location!=action_subject:
-            return False
-        return True
+            return ActionPossibility.IMPOSSIBLE
+        return ActionPossibility.POSSIBLE
 
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
@@ -113,8 +120,8 @@ class ActionWithdraw(Action): #take something out of a container
         container=arguments[1]
         #I cannot withdraw things from where they are not
         if item.location!=container:
-            return False
-        return True
+            return ActionPossibility.IMPOSSIBLE
+        return ActionPossibility.POSSIBLE
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         obj=arguments[0]
