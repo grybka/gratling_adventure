@@ -59,7 +59,7 @@ class TextWriter:
         my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
         if len(self.player_object.location.get_contents())>1:
             my_text+="You see here: "
-            for obj in self.player_object.location.objects:
+            for obj in self.player_object.location.get_contentns():
                 if obj!=self.player_object:  #don't list the player in the room
                     my_text+=obj.get_short_description()+"\n"
         self.display.update_text(my_text)
@@ -130,14 +130,10 @@ class GameEngine(AbstractEngine):
         self.last_presented_actions=offered_actions       
 
     def get_relevant_objects(self):
-        ret=[self.player_object,self.player_object.location]
-        ret.extend(self.player_object.location.exits)
-        ret.extend(self.player_object.location.get_contents())
-        ret.extend(self.player_object.inventory)
-        #get objects in the current location
-        #objects=self.player_location.get_objects()
-        #get connections in the current location
-        #connections=self.player_location.get_connections()
+        objects=[self.player_object.location]
+        ret=[self.player_object.location]
+        ret.extend(self.player_object.location.get_accessible_objects())
+        print("ret is ",ret)
         return ret
     
     def update(self):

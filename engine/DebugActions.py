@@ -32,6 +32,7 @@ class DebugActionCreate(Action):
         #override this.  I don't care about which actions are relevant
         object_factory=game_engine().object_factory
         creatable_objects=object_factory.get_creatable_objects()
+        print("creatable objects",creatable_objects)
         possible_fills=[]
         for object in creatable_objects:
             possible_fills.append([TaggedObject(choice_word=object)])

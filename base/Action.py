@@ -46,8 +46,12 @@ class Action:
                 for x in possible_fills:
                     next_ret.append(fill+[x])
             ret=next_ret
+        possible_ret=[]
+        for possibility in ret:
+            if self.is_action_possible(action_subject,possibility):
+                possible_ret.append(possibility)
         #print("ret is {}".format(ret))
-        return ret
+        return possible_ret
     
     def to_string_list(self,action_subject:TaggedObject,arguments:list[TaggedObject]): #arguments is a list of objects
         #

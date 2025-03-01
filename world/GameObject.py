@@ -76,10 +76,16 @@ class ContainerInterface(TaggedObject):
         self.inventory=[]
 
     def get_contents(self):
-        return self.inventory
+        ret=[]
+        ret.extend(self.inventory)
+        return ret
     
     def get_accessible_objects(self):
-        return self.inventory
+        ret=[]
+        for obj in self.inventory:
+            ret.append(obj)
+            ret.extend(obj.get_accessible_objects())
+        return ret
 
     def can_deposit_object(self,object:GameObject):
         if self.max_inventory_size is None or len(self.inventory)<self.max_inventory_size:
@@ -129,14 +135,14 @@ class Carryable(GameObject):
         #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
     
 #The sort of object that can contain other objects
-class Container(GameObject,ContainerInterface,OpenableInterface):
-    def __init__(self,base_noun="container",is_openable=False,is_carriable=False):
-        super().__init__(base_noun=base_noun)
-        self.description="It's a container" #description of the container
+#class LiddedContainer(GameObject,ContainerInterface,OpenableInterface):
+#    def __init__(self,base_noun="lidded_container",is_openable=False,is_carriable=False):
+#        super().__init__(base_noun=base_noun)
+#        self.description="It's a lidded container" #description of the container
     
 
 #characters can move around and carry things
-class Character(GameObject,ContainerInterface):
+class Character(ContainerInterface,GameObject):
     def __init__(self,base_noun="creature"):
         super().__init__(base_noun=base_noun)
         self.description="It's a creature"

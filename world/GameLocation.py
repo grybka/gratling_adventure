@@ -3,10 +3,10 @@ from world.GameObject import *
 from base.AbstractEngine import AbstractEngine,game_engine
 
 
-class GameLocation(GameObject,ContainerInterface):
+class GameLocation(ContainerInterface,GameObject):
     def __init__(self,base_noun="room"):
         super().__init__(base_noun=base_noun)
-        self.objects=[] #list of objects in the location
+        #self.objects=[] #list of objects in the location
         self.exits=[] #list of connections to other locations
         self.description="It's a room" #description of the location
         self.generation_data={} #used in generation
@@ -14,6 +14,16 @@ class GameLocation(GameObject,ContainerInterface):
 
         #for drawing
         self.map_position=(0,0) #position of the location on the map
+
+    def get_accessible_objects(self):
+        ret=[]
+        for obj in self.inventory:
+            ret.append(obj)
+            ret.extend(obj.get_accessible_objects())
+        for exit in self.exits:
+            ret.append(exit)
+            ret.extend(exit.get_accessible_objects())
+        return ret    
 
     def add_exit(self,exit):
         exit.location=self

@@ -2,3 +2,7 @@ carryable - can be carried
 carried_by_player - in the player's inventory
 openable - can be opened
 closeable -can be closed
+
+container - holds things
+accepts_deposit - can use deposit command
+accepts_widthdraw - can use widthraw command

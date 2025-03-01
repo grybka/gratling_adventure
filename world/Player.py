@@ -14,6 +14,13 @@ class Player(Character):
         for obj in self.inventory:
             ret["inventory"].append(obj.get_short_description())
         return ret
+    
+    def get_accessible_objects(self):
+        ret=super().get_accessible_objects()
+        print("player ret is ",ret)
+        print("player inventory is ",self.inventory)
+        return ret
+
 
     def add_to_inventory(self,object:Carryable):
         success,reason=super().add_to_inventory(object)

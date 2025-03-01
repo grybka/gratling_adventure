@@ -1,4 +1,5 @@
 from world.GameObject import *
+from world.TestObjects import *
 from base.AbstractEngine import AbstractEngine, game_engine
 
 # This class is used to create objects in the game world.
@@ -17,7 +18,7 @@ class ObjectFactory:
             new_object.description="a new object"
             new_object.tags.add("debug")
         if object_type=="container":
-            new_object=Container()
+            new_object=BasicContainer()
             new_object.name="new container"
             new_object.description="a new container"
             new_object.tags.add("debug")
