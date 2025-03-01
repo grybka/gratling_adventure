@@ -77,17 +77,13 @@ class GameEngine(AbstractEngine):
         self.writer=TextWriter(display,self.player_object)
 
         #special actions
-        
-
-
-
-
         self.world_map=world_map
         #self.assign_object_location(self.player_object,location_1)
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
         #self.player_location=start_location
         self.present_current_choices()
         #self.display.update_choices([["examine","self"],["examine","room"]])
+        self.turn_number=0
 
     def post_text(self,text):
         self.display.update_text(text)
@@ -144,7 +140,14 @@ class GameEngine(AbstractEngine):
             #turn the choice into a function
             action=self.last_presented_actions[",".join(choice_made)]
             time_elapsed=action[0].do_action(self.player_object,action[1])
-            self.display.update_status(self.player_object.get_status_object())
+            if time_elapsed>0:
+                self.turn_number+=time_elapsed
+                #other mobs take their turns
+                ...
+            
+            status=self.player_object.get_status_object()
+            status["turn_number"]=self.turn_number
+            self.display.update_status(status)
             self.present_current_choices()
 
     def announce_action(self,text):

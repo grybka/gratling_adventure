@@ -245,7 +245,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         self.image_panel.show_image(image)        
 
     def update_status(self,status):
-        my_text=""
+        my_text="Turn: "+str(status["turn_number"])+"\n"
         my_text+="Inventory:\n"
         for item in  status["inventory"]:
             my_text+=item+"\n"
