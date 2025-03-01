@@ -67,10 +67,13 @@ class ActionDrop(Action):
 register_action("exploration",ActionDrop())
 
 class ActionOpen(Action):
-    #open (door)
+    #open (door or chest)
     def __init__(self):
         super().__init__(action_word="open",n_args=1,tag_requirements=[TagRequirements(required_tags=["openable"])])
     
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return ActionPossibility.POSSIBLE
+
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         door=arguments[0]
         return door.open_action(action_subject)[1]
@@ -80,6 +83,9 @@ class ActionClose(Action):
     #close (door)
     def __init__(self):
         super().__init__(action_word="close",n_args=1,tag_requirements=[TagRequirements(required_tags=["closable"])])
+
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return ActionPossibility.POSSIBLE
     
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         door=arguments[0]
@@ -131,3 +137,27 @@ class ActionWithdraw(Action): #take something out of a container
             game_engine().writer.announce_action("You take the "+obj.get_choice_word()+" from the "+container.get_choice_word())
         return 1
 register_action("exploration",ActionWithdraw())
+
+class ActionWait(Action):
+    #wait
+    def __init__(self):
+        super().__init__(action_word="wait",n_args=0,tag_requirements=[])
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return 1
+register_action("exploration",ActionWait())
+
+class ActionExamine(Action):
+    #examine (object)
+    def __init__(self):
+        super().__init__(action_word="examine",n_args=1,tag_requirements=[TagRequirements(required_tags=[])])
+    
+    def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        return ActionPossibility.POSSIBLE
+    
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        game_engine().writer.announce_action(arguments[0].get_description())
+        return 0
+register_action("exploration",ActionExamine())
+
+

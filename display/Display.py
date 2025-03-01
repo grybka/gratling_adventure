@@ -284,9 +284,9 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         #self.map_image_element.set_image(self.map_image)
 
     def get_remaining_choices(self):
-        print("words picked ",self.words_picked)
-        print("choices ",self.choices)
-        print("bad choices ",self.bad_choices)
+        #print("words picked ",self.words_picked)
+        #print("choices ",self.choices)
+        #print("bad choices ",self.bad_choices)
         remaining_choices=[]
         for choice in self.choices:
             if string_list_matches_so_far(choice,self.words_picked):
@@ -295,7 +295,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         for choice in self.bad_choices:
             if string_list_matches_so_far(choice,self.words_picked):
                 remaining_bad_choices.append(choice)
-        print("returning ",remaining_choices," and ",remaining_bad_choices)
+        #print("returning ",remaining_choices," and ",remaining_bad_choices)
         return remaining_choices,remaining_bad_choices
 
     def word_picked(self,word_chosen):
@@ -303,7 +303,7 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         self.words_picked.append(word_chosen)
         remaining_choices,remaining_bad_choices=self.get_remaining_choices()       
         all_choices=remaining_choices+remaining_bad_choices         
-        print("remaining choices",remaining_choices," and ",remaining_bad_choices)
+        #print("remaining choices",remaining_choices," and ",remaining_bad_choices)
         #print("len remaining choices")
         #if we've selected a choice,  we're done
         if len(all_choices[0])==len(self.words_picked):

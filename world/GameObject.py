@@ -102,12 +102,22 @@ class ContainerInterface(TaggedObject):
     def withdraw_object(self,object:GameObject):
         self.inventory.remove(object)        
 
+#do I put locks and traps here?  Or do I have a
+#LockedOpenableInterface?  Lets suppose it all goes here.
+#An openable object can also be:
+# - stuck
+# - locked (needs lock object)
+# - trapped (needs trap object)
 class OpenableInterface(TaggedObject):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.add_tag("openable")
         self.add_tag("closable")
         self.is_open=False
+        self.is_stuck=False
+        self.is_locked=False
+        self.lock_object=None
+        self.is_trapped=False
 
     def open_action(self,opener:GameObject):
         if self.is_open:
@@ -124,6 +134,11 @@ class OpenableInterface(TaggedObject):
         game_engine().writer.announce_action("You close the "+self.get_noun_phrase())
         return True,1
         
+class LockObject(GameObject):
+    def __init__(self,base_noun="lock"):
+        super().__init__(base_noun=base_noun)
+        self.description="It's a lock" #description of the lock
+        self.my_key_id=None #the key that opens this lock
 
 #The sort of object one might put in their inventory
 class Carryable(GameObject):

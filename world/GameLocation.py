@@ -15,6 +15,9 @@ class GameLocation(ContainerInterface,GameObject):
         #for drawing
         self.map_position=(0,0) #position of the location on the map
 
+    def get_exits(self):
+        return self.exits
+
     def get_accessible_objects(self):
         ret=[]
         for obj in self.inventory:

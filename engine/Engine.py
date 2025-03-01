@@ -3,6 +3,7 @@ from base.AbstractEngine import AbstractEngine
 from world.GameObject import *
 from world.GameLocation import *
 from world.Player import Player
+from world.TestObjects import *
 from enum import Enum
 
 from base.Action import Action,get_actions
@@ -59,7 +60,7 @@ class TextWriter:
         my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
         if len(self.player_object.location.get_contents())>1:
             my_text+="You see here: "
-            for obj in self.player_object.location.get_contentns():
+            for obj in self.player_object.location.get_contents():
                 if obj!=self.player_object:  #don't list the player in the room
                     my_text+=obj.get_short_description()+"\n"
         self.display.update_text(my_text)
@@ -71,18 +72,21 @@ class GameEngine(AbstractEngine):
         self.display=display
         self.display.update_text("Welcome to the game!\n")
         self.play_mode=PlayMode.EXPLORATION
+        self.npcs=[] #list of all NPCs in the game
         #Game World
         self.object_factory=ObjectFactory()
         self.player_object=Player()
         self.writer=TextWriter(display,self.player_object)
 
-        #special actions
         self.world_map=world_map
-        #self.assign_object_location(self.player_object,location_1)
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
-        #self.player_location=start_location
+
+        test_npc=BasicNPC("test_npc")
+        self.npcs.append(test_npc)
+        self.assign_object_location(test_npc,self.world_map.get_starting_room())
+
+        #start game
         self.present_current_choices()
-        #self.display.update_choices([["examine","self"],["examine","room"]])
         self.turn_number=0
 
     def post_text(self,text):
@@ -135,19 +139,21 @@ class GameEngine(AbstractEngine):
         objects=[self.player_object.location]
         ret=[self.player_object.location]
         ret.extend(self.player_object.location.get_accessible_objects())
-        print("ret is ",ret)
+        #print("ret is ",ret)
         return ret
     
     def update(self):
         #check if the player has made a choice
         choice_made=self.display.get_waiting_choices()
         if choice_made is not None:
-            print("Choice made:",choice_made)
+            #print("Choice made:",choice_made)
             #turn the choice into a function
             action=self.last_presented_actions[",".join(choice_made)]
             time_elapsed=action[0].do_action(self.player_object,action[1])
             if time_elapsed>0:
                 self.turn_number+=time_elapsed
+                for npc in self.npcs:
+                    npc.take_turn()
                 #other mobs take their turns
                 ...
             
