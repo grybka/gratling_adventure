@@ -3,26 +3,32 @@ images:
   catacombs:
     file: catacombs.jpg
   aisle:
-    file: aisle.jpg
+    file: aisle.png
   arcade:
-    file: arcade.jpg
+    file: arcade.png
   atrium:
-    file: atrium.jpg
+    file: atrium.png
   dark_stairs:
     file: dark_stairs.jpg
   font:
-    file: font.jpg
+    file: font.png
   impluvium:
-    file: impluvium.jpg
+    file: impluvium.png
   l-door:
-    file: l-door.jpg
+    file: l-door.png
   opening_1:
     file: opening_1.jpg
   portcullis:
-    file: portcullis.jpg
+    file: portcullis.png
   romanesque:
-    file: romanesque.jpg
+    file: romanesque.png
   stoa:
-    file: stoa.jpg
+    file: stoa.png
+  ramses:
+    file: ramses.jpg
+  rough_stone_room:
+    file: rough_stone_room.png
+  brick_room:
+    file: brick_room.jpg
 
 

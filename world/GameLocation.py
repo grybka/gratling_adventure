@@ -2,18 +2,22 @@ from world.GameObject import *
 #from base.ActionTemplate import ActionTemplate 
 from base.AbstractEngine import AbstractEngine,game_engine
 
-
+#Needs to have:
+#room name  (this is what shows up on the map.  3 words long max)
+#description  (what gets read when you enter the room)
 class GameLocation(ContainerInterface,GameObject):
     def __init__(self,base_noun="room"):
         super().__init__(base_noun=base_noun)
         #self.objects=[] #list of objects in the location
         self.exits=[] #list of connections to other locations
+        self.room_name="room name"
         self.description="It's a room" #description of the location
         self.generation_data={} #used in generation
         #self.image=None #image of the location
 
         #for drawing
         self.map_position=(0,0) #position of the location on the map
+        self.image_name=None
 
     def get_exits(self):
         return self.exits
@@ -33,10 +37,16 @@ class GameLocation(ContainerInterface,GameObject):
         self.exits.append(exit)
 
     def get_room_name(self):
-        return self.get_short_description()
+        return self.room_name
+    
+    def set_room_name(self,room_name):
+        self.room_name=room_name
 
     def get_objects(self):
         return self.objects
+    
+    def set_description(self,description):
+        self.description=description
 
     def get_description(self):
         return self.description
@@ -44,8 +54,11 @@ class GameLocation(ContainerInterface,GameObject):
     def get_entrance_text(self):
         return "<u>"+self.get_room_name()+"</u>\n"+self.description
 
+    def set_entrance_image(self,image_name):
+        self.image_name=image_name
+
     def get_entrance_image(self):
-        return "catacombs"
+        return self.image_name
     
 class GameExit(GameObject):
     def __init__(self,destination:GameLocation=None,base_noun="exit"):
@@ -89,8 +102,8 @@ class DoorExit(GameExit,OpenableInterface):
         super().__init__(destination=destination,base_noun="door")        
         self.is_open=False
         self.is_stuck=False
-        self.lock_id=1
-        self.is_locked=True
+        self.lock_id=None
+        self.is_locked=False
 
     def is_passable(self):
         return self.is_open

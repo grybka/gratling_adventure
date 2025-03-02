@@ -1,7 +1,9 @@
 from world.LocationMap import LocationMap, add_grid_pos, opposite_dir
 from world.GameLocation import *
+from world.generation.Producer import Grammar
 import random
 import yaml
+from bs4 import BeautifulSoup
 
 #perhaps the table looks like:
 #for a given room type:
@@ -21,7 +23,9 @@ class MapGenerator1:
             self.yaml_data=yaml.load(f,Loader=yaml.FullLoader)
         self.starting_room_type=self.yaml_data["starting_room_type"]
 
-
+        self.location_description_grammar=Grammar()
+        with open("world/generation/location_grammar.grammar") as f:
+            self.location_description_grammar.load_string(f.read())
 
         #----Some configuration----
         #how much more likely are straights than angles
@@ -30,17 +34,53 @@ class MapGenerator1:
 
 
     def generate_map(self):
-        self.generate_starting_room()
+        self.edge_rooms.append(self.generate_starting_room())
         while(len(self.edge_rooms)>0):
             room=self.edge_rooms.pop(0)
             self.generate_room(room)
+
+
+    def generate_room_description(self,room,room_gen_info):
+        starting_symbol=room_gen_info["description"]
+        description_text=self.location_description_grammar.produce(starting_symbol)
+        print("description text is {}".format(description_text))
+        soup=BeautifulSoup(description_text,"html.parser")
+        #Short description is the text of the first short tag    
+        tags=soup.find_all()    
+        print(soup.find_all())
+        room_names=soup.find_all('room_name')        
+        if len(room_names)>0:
+            #print("setting room name")
+            room.set_room_name(room_names[0]['value'])            
+        else:
+            room.set_room_name(starting_symbol)
+        #description here 
+        #collapse double spaces in text because of the way the grammar works
+        description=soup.get_text().replace("  "," ")
+        room.set_description(description)
+        #image here
+        image_options=soup.find_all('image')
+        if len(image_options)>0:
+            print("setting image")
+            room.set_entrance_image(image_options[0]['value'])
+
+
+        #print("room name: {}".format(room.get_room_name()))
+        #print("room description: {}".format(room.get_description()))
 
     def generate_room(self,room):
         #Note I assume the room object has already been created in an empty sense
         edge_rooms=[]
         #TODO generate name and description
         room_type=room.generation_data['room_type']
-        room.short_description=room_type
+        if room_type not in self.yaml_data['location_types']:
+            print("Room type {} not found in yaml data".format(room_type))
+            #this error is fatal
+        room_gen_info=self.yaml_data['location_types'][room_type]
+        if "description" in room_gen_info:
+            self.generate_room_description(room,room_gen_info)            
+        else:
+            room.short_description=room_type
         #TODO generate exits
         n_exits=random.randint(1,4)
         retries=0
@@ -114,15 +154,20 @@ class MapGenerator1:
     def generate_starting_room(self):
         room_type=self.starting_room_type
         starting_room=GameLocation("Starting Room")
+        starting_room.generation_data['room_type']=self.starting_room_type
+
         self.my_map.add_room(starting_room,self.my_map.get_starting_grid_position())
-        #TODO generate name and description
-        n_exit_bounds=self.yaml_data['location_types'][room_type]['n_exits']
-        n_exits=random.randint(n_exit_bounds[0],n_exit_bounds[1])
-        #n_exits=random.randint(2,4)
-        for i in range(n_exits):
-            self.generate_exit(starting_room,room_type)
-        #TODO generate exits
         return starting_room
+
+
+        #TODO generate name and description
+        #n_exit_bounds=self.yaml_data['location_types'][room_type]['n_exits']
+        #n_exits=random.randint(n_exit_bounds[0],n_exit_bounds[1])
+        #n_exits=random.randint(2,4)
+        #for i in range(n_exits):
+        #    self.generate_exit(starting_room,room_type)
+        #TODO generate exits
+        #return starting_room
     
     def get_exit_dirs(self):
         return [ (-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]

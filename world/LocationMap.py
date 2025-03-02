@@ -109,6 +109,10 @@ class LocationMap:
                     pygame.draw.rect(my_surface,(255,255,255),room_rect) 
                     pygame.draw.rect(my_surface,(0,0,0),room_rect,1) 
                     room_text=self.my_font.render(room.get_room_name(),True,(0,0,0))
+                    #if room text doesn't fit in room rect, scale it down
+                    if room_text.get_width()>room_rect.width:
+                        scale=0.95*room_rect.width/room_text.get_width()                        
+                        room_text=pygame.transform.scale(room_text,(int(room_text.get_width()*scale),int(room_text.get_height()*scale)))
                     rect = room_text.get_rect(center=room_rect.center)
                     my_surface.blit(room_text,rect)
                     
@@ -145,7 +149,7 @@ class LocationMapGrid3:
         #drawing parameters
         self.room_width=100
         self.room_height=30
-        self.my_font=pygame.font.Font(None,20)
+        self.my_font=pygame.font.Font(None,16)
 
         #test grid
         self.room_grid=[]
@@ -166,6 +170,7 @@ class LocationMapGrid3:
 
 
     def get_map_image(self,location):
+        print("getmapimage")
         width=512
         height=512
         my_surface=pygame.surface.Surface((width,height))
@@ -173,13 +178,24 @@ class LocationMapGrid3:
         for room in self.rooms:
             for exit in room.exits:
                 pygame.draw.line(my_surface,(0,0,0),room.map_position,exit.destination.map_position)
-        for room in self.rooms:
+        for room in self.rooms:            
             room_rect=pygame.Rect(0,0,self.room_width,self.room_height)
             room_rect.center=room.map_position
           
             pygame.draw.rect(my_surface,(255,255,255),room_rect) 
             pygame.draw.rect(my_surface,(0,0,0),room_rect,1) 
             room_text=self.my_font.render(room.get_room_name(),True,(0,0,0))
+            #if the room text doesnt fit inside room rect, then scale it down
+            print("room text width",room_text.get_width())
+            print("room rect width",room_rect.width)
+            if room_text.get_width()>room_rect.width:
+                print("scaling down")
+                scale=room_rect.width/room_text.get_width()
+                print("scale")
+                room_text=pygame.transform.scale(room_text,(int(room_text.get_width()*scale),int(room_text.get_height()*scale)))
+
+
+
             rect = room_text.get_rect(center=room.map_position)
             my_surface.blit(room_text,rect)
             

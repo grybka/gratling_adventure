@@ -15,7 +15,7 @@ class Symbol:
         self.rep=""
         self.terminal=True
     def __init__(self,tok,is_term):
-        self.rep=tok
+        self.rep=tok.replace('\\"','"')
         self.terminal=is_term
     def is_terminal(self):
         return self.terminal
@@ -46,10 +46,6 @@ class Symbol:
 
 
 class Production:
-    def __init__(self):
-        self.lhs=""
-        self.rhs=[]
-        self.weight=1
     def __init__(self,line):
         self.lhs=""
         self.rhs=[]
@@ -63,9 +59,13 @@ class Production:
         self.lhs=Symbol.from_string(tokens[0])
         for i in range(2,len(tokens)):
             if tokens[i][0]=='[':
-                self.prob_count=float(tokens[i][1:-1])
+                self.weight=float(tokens[i][1:-1])
             else:
                 self.rhs.append(Symbol.from_string(tokens[i]))
+        print("read production",self)
+
+    def __str__(self):
+        return "{} -> {} [{}]".format(self.lhs," ".join([ str(x) for x in self.rhs]),self.weight)
 
 
 class Grammar:

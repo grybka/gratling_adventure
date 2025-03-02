@@ -11,3 +11,6 @@ atrium https://commons.wikimedia.org/wiki/File:Atrium_(PSF).png
 dark_stairs https://www.oldbookillustrations.com/site/assets/high-res/1896/large-pale-light-768.jpg
 l-door https://commons.wikimedia.org/wiki/File:L-door.png
 opening_1 https://commons.wikimedia.org/wiki/File:Portada_al_repl%C3%A0_superior_de_l%27escala_del_palau_de_Moss%C3%A9n_Sorell_de_Val%C3%A8ncia,_dibuixat_per_Asenjo.jpg
+rough_stone_room https://upload.wikimedia.org/wikipedia/commons/e/e1/Dura-Europos_archival_photograph%2C_YUAG_negative_number_dura-g1147a~01_-object-id-3422.tif
+ramses https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Carter%2C_Tomb_of_Tut-Ankh-Amen%2C_Plate_VI%2C_Interior_of_the_Tomb_of_Rameses_IX.jpg/663px-Carter%2C_Tomb_of_Tut-Ankh-Amen%2C_Plate_VI%2C_Interior_of_the_Tomb_of_Rameses_IX.jpg?20190326175206
+brick_room https://commons.wikimedia.org/wiki/File:Pomorie_Tomb_Interior_IMG_2003.JPG

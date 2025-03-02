@@ -1,0 +1,54 @@
+ROOM_DESCRIPTION -> "This is a " ROOM_SIZE ROOM_SHAPE " room. <image value=\"brick_room\">"
+ROOM_DESCRIPTION -> "This is a " ROOM_SIZE ROOM_SHAPE " room. <image value=\"ramses\">"
+ROOM_DESCRIPTION -> "This is a " ROOM_SIZE ROOM_SHAPE " room. <image value=\"rough_stone_room\">"
+ROOM_SIZE -> "  " [3]
+ROOM_SIZE -> "large <room_name value=\"Large Room\"> " [1]
+ROOM_SIZE -> "small <room_name value=\"Small Room\"> " [1]
+ROOM_SHAPE -> "square <room_name value=\"Square Room\"> " [2]
+ROOM_SHAPE -> "rectangular <room_name value=\"Rectangular Room\"> " [2]
+ROOM_SHAPE -> "circular <room_name value=\"Circular Room\"> " [1]
+ROOM_SHAPE -> "octagonal <room_name value=\"Octagonal Room\"> " [1]
+CHAMBER_DESCRIPTION -> "The roof of this chamber is held up with " MATERIAL " columns <room_name value=\"Column Chamber\"> <image value=\"stoa\">"
+CHAMBER_DESCRIPTION -> "A pool is at the center of this room <room_name value=\"Pool Room\"> <image value=\"impluvium\">"
+CHAMBER_DESCRIPTION -> "A fountain is at the center of this room <room_name value=\"Fountain Room\"> <image value=\"atrium\">"
+CORRIDOR_DESCRIPTION -> "This is a <image value=\"catacombs\"> " CORRIDOR_ADJ CORRIDOR_NOUN
+CORRIDOR_DESCRIPTION -> "This is a <image value=\"romanesque\"> " CORRIDOR_ADJ CORRIDOR_NOUN
+CORRIDOR_DESCRIPTION -> "This is a <image value=\"opening_1\"> " CORRIDOR_ADJ CORRIDOR_NOUN
+CORRIDOR_DESCRIPTION -> "This is a <image value=\"arcade\"> " CORRIDOR_ADJ CORRIDOR_NOUN
+CORRIDOR_ADJ -> TEMPERATURE
+CORRIDOR_ADJ -> MATERIAL
+CORRIDOR_ADJ -> DUNGEON_ADJ
+COORIDOR_ADJ -> "long and winding"
+COORIDOR_ADJ -> "cramped"
+CORRIDOR_NOUN -> "passage <room_name value=\"passage\">"
+CORRIDOR_NOUN -> "passageway <room_name value=\"passage\">"
+CORRIDOR_NOUN -> "corridor <room_name value=\"corridor\">"
+CORRIDOR_NOUN -> "tunnel <room_name value=\"tunnel\">"
+CORRIDOR_NOUN -> "hallway <room_name value=\"hallway\">"
+MATERIAL -> STONE_ADJ "stone"
+MATERIAL -> "stone"
+MATERIAL -> "brick"
+MATERIAL -> "masonry"
+MATERIAL -> STONE_ADJ "masonry"
+MATERIAL -> "marble"
+STONE_ADJ -> "smooth"
+STONE_ADJ -> "rough"
+STONE_ADJ -> "polished"
+STONE_ADJ -> "worked"
+TEMPERATURE -> "tepid"
+TEMPERATURE -> "warm"
+TEMPERATURE -> "cold"
+TEMPERATURE -> "cool"
+DUNGEON_ADJ -> "dank"
+DUNGEON_ADJ -> "moldy"
+DUNGEON_ADJ -> "damp"
+
+
+
+#Rooms and CHAMBER_DESCRIPTION
+
+
+#Room Types
+#
+#seals and fills with water and you have to enter a certain code to get out
+#

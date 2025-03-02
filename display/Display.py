@@ -90,16 +90,7 @@ class InputPanel(UIPanel):
         self.button_part=ButtonArray(Rect((button_part_xstart,self.padding),(button_part_width,rect.height)),container=self,manager=self.ui_manager,anchors={"top":"top","left":"left"},button_labels=button_labels,bad_button_labels=bad_button_labels)
 
     def process_event(self,event):
-        return False
-        if event.type==pygame_gui.UI_BUTTON_PRESSED:
-            if self.back_button == event.ui_element:
-                print("Back button pressed")
-                return True
-            array_button_pressed=self.button_part.get_pressed_button_text(event.ui_element)
-            if array_button_pressed is not None:
-                print("Button pressed:",array_button_pressed)
-                return True
-        return super().process_event(event)
+        return False        
 
 def string_list_matches_so_far(choice,words_picked):
     if len(choice)<len(words_picked):
@@ -170,6 +161,7 @@ class ImagePanel(UIPanel):
         if image_name not in self.image_info["images"]:
             print("Image {} not found".format(image_name))
             return
+        print("showing image ",image_name)
         if image_name not in self.loaded_images:
             print(image.get_extended())
             target_file=os.path.join(self.base_path,self.image_info["images"][image_name]["file"])

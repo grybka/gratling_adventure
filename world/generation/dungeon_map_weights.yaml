@@ -7,18 +7,21 @@ location_types:
       - ['ex',    'hallway', 'corridor', 1 ]
       - ['cross', 'hallway', 'room', 2 ]
       - ['cross', 'door', 'chamber', 2 ]
-  room:
+    description: "CORRIDOR_DESCRIPTION"
+  room: 
     n_exits: [2,4]
-    exits:
+    exits: # [type, exit_type, location_type, weight]
       - ['cross', 'hallway', 'corridor', 2 ]
       - ['cross', 'hallway', 'room', 2 ]
       - ['cross', 'door', 'chamber', 1 ]
+    description: "ROOM_DESCRIPTION"
   chamber:
     n_exits: [2,4]
     exits:
       - ['cross', 'door', 'corridor', 3 ]
       - ['cross', 'door', 'room', 2 ]
       - ['cross', 'door', 'chamber', 1 ]
+    description: "CHAMBER_DESCRIPTION"
 exit_types:
   hallway:
     names: ["hallway", "passage", "archway"]
