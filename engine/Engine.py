@@ -14,6 +14,8 @@ from engine.DebugActions import *
 from world.LocationMap import LocationMapGrid
 from world.ObjectFactory import ObjectFactory
 
+import uuid
+
 #Loop
 #Choose Action
 #Perform Action
@@ -41,42 +43,41 @@ def add_a(word):
     else:
         return "a "+word
 
-#separate messages to the player from the engine logic
-class TextWriter:
-    def __init__(self,display:AbstractDisplay,player_object:Player):
-        self.display=display
-        self.player_object=player_object
+#this class stores the state of the game - in particular actions that have happened since the last report
+#it is used to update the display
+class GameState:
+    def __init__(self):
+        self.room_text="test room text"
+        self.status_text="test status text"
+        self.items_text="test inventory text"
+        self.event_text="test event text"
+    
+    def reset_game_state_text(self):
+        self.room_text=""
+        self.status_text=""
+        self.items_text=""
+        self.event_text=""
 
-    def announce_action(self,text):
-        self.display.update_text("<em>"+text+"</em>\n")
+    def announce_action(self,text): #these go into events
+        print("announce action: ",text)
+        self.event_text+=text+"\n"
 
-    def announce_failure(self,text):
-        self.display.update_text("<strong>"+text+"</strong>\n")
+    def get_message_object(self): #will be turned into json
+        return {"room_text":self.room_text,
+                "status_text":self.status_text,
+                "items_text":self.items_text,
+                "event_text":self.event_text}        
 
-    def describe_room_on_entrance(self):
-        my_text="\n"
-        my_text+=self.player_object.location.get_entrance_text()+"\n"
-        my_text+="Visible Exits: "
-        my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
-        if len(self.player_object.location.get_contents())>1:
-            my_text+="You see here: "
-            for obj in self.player_object.location.get_contents():
-                if obj!=self.player_object:  #don't list the player in the room
-                    my_text+=obj.get_short_description()+"\n"
-        self.display.update_text(my_text)
-        
-
-class GameEngine(AbstractEngine):
-    def __init__(self,display:AbstractDisplay,world_map=None):
-        super().__init__()
-        self.display=display
-        self.display.update_text("Welcome to the game!\n")
+class GameEngine(AbstractEngine,GameState):
+    def __init__(self,world_map=None):
+        super().__init__()        
+        self.reset_game_state_text()
         self.play_mode=PlayMode.EXPLORATION
         self.npcs=[] #list of all NPCs in the game
         #Game World
         self.object_factory=ObjectFactory()
         self.player_object=Player()
-        self.writer=TextWriter(display,self.player_object)
+        #self.writer=TextWriter(display,self.player_object)
 
         self.world_map=world_map
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
@@ -85,65 +86,21 @@ class GameEngine(AbstractEngine):
         self.npcs.append(test_npc)
         self.assign_object_location(test_npc,self.world_map.get_starting_room())
 
+        #command handling
+        self.possible_actions=ActionDict()
         #start game
         self.turn_number=0
         status=self.player_object.get_status_object()
         status["turn_number"]=self.turn_number
-        self.display.update_status(status)        
-        self.present_current_choices()
-        
+        #self.display.update_status(status)        
+        #self.present_current_choices()
+        self.player_turn_start()
 
-    def post_text(self,text):
-        self.display.update_text(text)
-
-    def get_all_possible_actions(self):
-        all_possible_actions=[]
-        if self.play_mode==PlayMode.EXPLORATION:
-            #Get all of the normal actions that the player can perform
-            actions=get_actions("exploration")
-            #print("actions",actions)
-            #action_templates=self.player_location.get_action_templates()
-            relevant_objects=self.get_relevant_objects()
-            #print("n relevant objects",len(relevant_objects))
-            for action in actions:
-                possible_fills,almost_possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
-                #TODO test if possible
-                for fill in possible_fills:
-                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))
-                for fill in almost_possible_fills:
-                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE_WITH_MODIFICATIONS))
-            #Add any special actions for the engine
-            #all_possible_actions.append( (ActionEnterDebugMode(),[]) )
-        elif self.play_mode==PlayMode.DEBUG:
-            actions=get_actions("debug")
-            relevant_objects=self.get_relevant_objects()
-            for action in actions:                
-                possible_fills,almost_possible_fills=action.get_possible_fills(self.player_object,relevant_objects)
-                #TODO test if possible
-                for fill in possible_fills:
-                    all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))
-
-    def get_all_possible_choices(self):
-        all_possible_actions=self.get_all_possible_actions()
-        
-        offered_actions={}
-        word_choices=[]
-        word_bad_choices=[]
-        for action,fill,possibility in all_possible_actions:
-            choice=action.to_string_list(self.player_object,fill)
-            offered_actions[",".join(choice)]=(action,fill,possibility)
-            if possibility==ActionPossibility.POSSIBLE:
-                word_choices.append(choice)
-            else:
-                word_bad_choices.append(choice)
-        return all_possible_actions,word_choices,word_bad_choices,offered_actions
-
-
-    def get_current_choices(self):
-        all_possible_actions,word_choices,word_bad_choices,offered_actions=self.get_all_possible_choices()
-        
-        self.display.update_choices(word_choices,word_bad_choices)
-        self.last_presented_actions=offered_actions       
+    def player_turn_start(self):
+        ...
+        #text,actions=self.player_object.location.get_world_html_and_actions(self.player_object,self.get_relevant_objects())
+        #self.possible_actions=actions
+        #self.display.update_text(text)        
 
     def get_relevant_objects(self):
         objects=[self.player_object.location]
@@ -156,10 +113,13 @@ class GameEngine(AbstractEngine):
         #check if the player has made a choice
         choice_made=self.display.get_waiting_choices()
         if choice_made is not None:
-            #print("Choice made:",choice_made)
-            #turn the choice into a function
-            action=self.last_presented_actions[",".join(choice_made)]
-            time_elapsed=action[0].do_action(self.player_object,action[1])
+            my_key=uuid.UUID(choice_made)
+            print("Choice made:",my_key)
+            action_fill=self.possible_actions.get_action(my_key)
+            if action_fill is None:
+                print("possible actions: ",self.possible_actions)
+                raise Exception("impossible action chosen.  how to debug?")
+            time_elapsed=action_fill.execute()                                        
             if time_elapsed>0:
                 self.turn_number+=time_elapsed
                 for npc in self.npcs:
@@ -170,13 +130,7 @@ class GameEngine(AbstractEngine):
             status=self.player_object.get_status_object()
             status["turn_number"]=self.turn_number
             self.display.update_status(status)
-            self.present_current_choices()
-
-    def announce_action(self,text):
-        self.writer.announce_action(text)
-
-    def announce_failure(self,text):
-        self.writer.announce_failure(text)
+            self.player_turn_start()                       
 
     def transfer_object(self,object:GameObject,destination:GameLocation):
         origin=object.location
@@ -195,27 +149,21 @@ class GameEngine(AbstractEngine):
         #make announcements (handle that elsewhere
         return True
 
-    def assign_object_location(self,object:GameObject,location:GameLocation):
-        #So I can make announcemnets
-        #object.set_location(location)
-        #location.objects.append(object)
+    def assign_object_location(self,object:GameObject,location:GameLocation):        
         location.deposit_object(object)
         if object==self.player_object:
-            self.player_object.known_locations.add(location.map_position)
-            self.display.update_map(self.world_map.get_map_image(location,self.player_object.known_locations)  )     
-            self.display.update_map_position(self.world_map.get_map_image_location(location))
-            self.writer.describe_room_on_entrance()
-            self.display.update_image(location.get_entrance_image())
-
+            self.player_object.known_locations.add(location.map_position)           
         elif location==self.player_object.location:
-            self.writer.announce_action(add_a(object.get_noun_phrase())+" appears in a flash of logic\n")
+            print("announcing action")
+            self.announce_action(add_a(object.get_noun_phrase())+" appears in a flash of logic")
         else:
-            self.writer.announce_action("They've changed something")
+            print("announcing action2")
+            self.announce_action("They've changed something")
 
     def character_arrives(self,character:Character,location:GameLocation):                
         if character==self.player_object:     
             self.player_object.known_locations.add(location.map_position)   
-            self.writer.describe_room_on_entrance()    
+            #self.writer.describe_room_on_entrance()    
             if self.play_mode==PlayMode.DEBUG:
                 self.display.update_map(self.world_map.get_map_image(location,None)  )   
             else:    

@@ -43,7 +43,7 @@ class MapGenerator1:
     def generate_room_description(self,room,room_gen_info):
         starting_symbol=room_gen_info["description"]
         description_text=self.location_description_grammar.produce(starting_symbol)
-        print("description text is {}".format(description_text))
+        #print("description text is {}".format(description_text))
         soup=BeautifulSoup(description_text,"html.parser")
         #Short description is the text of the first short tag    
         tags=soup.find_all()    
@@ -61,7 +61,7 @@ class MapGenerator1:
         #image here
         image_options=soup.find_all('image')
         if len(image_options)>0:
-            print("setting image")
+            #print("setting image")
             room.set_entrance_image(image_options[0]['value'])
 
 

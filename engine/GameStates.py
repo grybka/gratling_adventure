@@ -1,3 +1,4 @@
+"""DEFUNCT
 from engine.Engine import GameEngine
 from base.AbstractEngine import set_game_engine
 from world.generation.MapGenerator import MapGenerator1
@@ -34,3 +35,4 @@ class PlayGameState(GameState):
         if not self.is_running:
             return False, None
         return True, self
+"""

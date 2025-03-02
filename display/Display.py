@@ -207,32 +207,41 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         height_3=(screen.height-4*padding)*0.2
 
         #image space
-        #self.image_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
         self.image_panel = ImagePanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self)
         #status space
         self.status_panel = UITextBox(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, html_text="", container=self,anchors={"left_target": self.image_panel}) 
-        #self.map_image_dims=(self.status_panel.rect.width,self.status_panel.rect.height)
-        #self.map_position=(0,0)
-        #self.submap_image=surface.Surface(self.map_image_dims)
-        #self.map_image_element=UIImage(relative_rect=Rect((0, 0), self.map_image_dims), image_surface=self.submap_image, manager=self.ui_manager, container=self.status_panel)               
+        #map space
         self.map_panel = UIPanel(relative_rect=Rect((padding, padding), (col_width, height_1)), manager=manager, container=self,anchors={"left_target": self.status_panel}) 
-
         self.map_image_element=MapImage(relative_rect=Rect((sub_padding, sub_padding), (self.status_panel.rect.width-2*sub_padding,self.status_panel.rect.height-2*sub_padding)), manager=self.ui_manager, container=self.map_panel)
         #description space
         self.description_panel = UITextBox(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_2)), manager=manager,html_text="", container=self,anchors={"top_target": self.image_panel})
+        #event space
+        self.event_panel=UITextBox(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_3)), manager=manager,html_text="", container=self,anchors={"top_target": self.description_panel})
 
         #input space
-        self.input_panel = InputPanel(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_3)), manager=manager, container=self, anchors={"top_target": self.description_panel})
+        #self.input_panel = InputPanel(relative_rect=Rect((padding, padding), (screen.width-2*padding, height_3)), manager=manager, container=self, anchors={"top_target": self.description_panel})
+
         self.choices=[] #choices that will be possible
         self.bad_choices=[] #choices that will be impossible but you might want to know why
         self.words_picked=[]
         self.choice_to_engine=None
 
 
-    def update_text(self,text):
+    def update_text(self,text,append=False):
+        if not append:
+            self.description_panel.clear()            
         self.description_panel.append_html_text(text)
         if self.description_panel.scroll_bar is not None:
             self.description_panel.scroll_bar.set_scroll_from_start_percentage(1.0)
+
+    def update_event(self,text,append=True):
+        if not append:
+            self.event_panel.clear()            
+        self.event_panel.append_html_text(text)
+        if self.event_panel.scroll_bar is not None:
+            self.event_panel.scroll_bar.set_scroll_from_start_percentage(1.0)
+        #self.event_panel.set_active_effect(pygame_gui.TEXT_EFFECT_TYPING_APPEAR, effect_tag='test')
+
 
     def update_choices(self,choices,bad_choices=[]):
         #reset choices and words picked
@@ -326,6 +335,10 @@ class DisplayInterface(UIPanel,AbstractDisplay):
         
     def process_event(self,event):
         #uhg, lets just do all the processing here
+        if event.type == pygame_gui.UI_TEXT_BOX_LINK_CLICKED:
+            #print("link clicked: ",event.link_target)
+            self.choice_to_engine=event.link_target
+            return True
         if event.type==pygame_gui.UI_BUTTON_PRESSED:
             if self.input_panel.back_button == event.ui_element:
                 if len(self.words_picked)>0:

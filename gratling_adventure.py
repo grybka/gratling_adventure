@@ -1,3 +1,50 @@
+from flask import Flask, render_template, request, jsonify
+import random
+from world.generation.MapGenerator import MapGenerator1
+from engine.Engine import GameEngine,GameState
+from base.AbstractEngine import set_game_engine,game_engine
+import sys
+import pygame
+
+app=Flask(__name__)
+
+#this binds a URL to a function
+@app.route('/')
+def sessions():
+    return render_template('game_screen.html')
+
+@app.route('/action', methods=['POST'])
+def action():
+    print('action was received!!!')
+    print(request.data)
+    data = request.get_json()
+    print("data was {}".format(data))
+    engine=game_engine()    
+    return jsonify(engine.get_message_object())
+
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+if __name__ == '__main__':
+    n = len(sys.argv)
+    if n == 2:
+        #use random seed
+        random.seed(sys.argv[1])
+    #it's probably silly to use all of pygame just to draw the map
+    pygame.init()
+
+    #Tuck this away somewhere else eventually.  I'd have a state manager, but I think I can do that with flask routes
+    map_generator=MapGenerator1()
+    map_generator.generate_map()
+    engine=GameEngine(map_generator.my_map)
+    set_game_engine(engine)
+
+    app.run()
+    
+
+
+
+"""
 from display.Display import DisplayInterface
 import pygame
 import pygame_gui
@@ -46,3 +93,4 @@ while is_running:
     manager.draw_ui(window_surface)
 
     pygame.display.update()
+"""

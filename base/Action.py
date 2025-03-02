@@ -1,5 +1,6 @@
 from base.TaggedObject import TaggedObject,TagRequirements
 import enum
+import uuid
 
 class ActionPossibility(enum.Enum):
     POSSIBLE=1
@@ -7,7 +8,8 @@ class ActionPossibility(enum.Enum):
     POSSIBLE_WITH_MODIFICATIONS=3
 
 class Action:
-    def __init__(self,action_word="unknown action",n_args=0,tag_requirements=[]):
+    def __init__(self,action_word="unknown action",n_args=0,tag_requirements=[]):     
+        
         self.n_args=n_args #number of arguments
         self.tag_requirements=tag_requirements #list of tag requirements for each argument
         self.action_word=action_word #word that represents the action
@@ -19,6 +21,8 @@ class Action:
     def get_action_word(self):
         #return the word that represents the action
         return self.action_word
+    
+    
 
     def get_n_object_arguments(self):
         #return the number of object arguments (aside from the subject)
@@ -77,6 +81,7 @@ class Action:
                 ret.append("None")
         return ret
 
+    
 
     def is_action_possible(self,action_subject:TaggedObject,arguments:list[TaggedObject]) -> ActionPossibility:
         #must be overridden
@@ -88,6 +93,43 @@ class Action:
         #must be overridden
         print("Warning: Action.do_action() not implemented")
         ...
+
+class FilledAction:
+    def __init__(self,action:Action,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        self.id=uuid.uuid4()
+        self.action=action
+        self.action_subject=action_subject
+        self.arguments=arguments
+
+    def get_link(self,text):
+        return "<a href="+self.id.__str__()+"title=\"this is hover text\">"+text+"</a>"
+    
+    def execute(self):
+        return self.action.do_action(self.action_subject,self.arguments)
+    
+    def __repr__(self):
+        print("FilledAction: ",self.id,self.action,self.action_subject,self.arguments)
+
+class ActionDict:
+    def __init__(self):
+        self.actions={}
+
+    def add_action_link(self,action:FilledAction,text:str):
+        self.actions[action.id]=action
+        return action.get_link(text)
+    
+    def add_action_dict(self,my_dict):
+        for key in my_dict.actions:
+            self.actions[key]=my_dict.actions[key]
+    
+    def get_action(self,id) -> Action:
+        if id in self.actions:
+            return self.actions[id]
+        return None
+
+    def __repr__(self):
+        return self.actions.__repr__()
+
 
 global _actions_by_category
 _actions_by_category={}

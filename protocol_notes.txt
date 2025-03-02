@@ -1,0 +1,6 @@
+json for game state.
+ room_text: (raw html as a string, I suppose)
+ status_text: (raw html as a string)
+ items_text: (raw html as a string) could just be inventory, but leave items in case on floor
+ image:  (TODO how to I send an image?  Oh I guess I update the  yeah look it up online)
+ event_text: (raw html as a string) - but do I append or hold that on my own?

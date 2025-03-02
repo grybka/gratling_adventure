@@ -54,6 +54,10 @@ class GameObject(TaggedObject):
 
     def get_tags(self):
         return self.tags
+    
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]):
+        #Returns an html string and a list of actions that match the hyperlinks in the slot
+        return "",[]
 
     
 #I'm considering moving to separate the object class, which represents
@@ -211,6 +215,7 @@ class OpenableInterface(LockableInterface,TaggedObject):
             game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already closed.")
             return False,0
         game_engine().writer.announce_action("You close the "+self.get_noun_phrase())
+        self.is_open=False
         return True,1
         
 class LockObject(GameObject):

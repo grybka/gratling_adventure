@@ -1,6 +1,8 @@
 from world.GameObject import *
 #from base.ActionTemplate import ActionTemplate 
 from base.AbstractEngine import AbstractEngine,game_engine
+from base.Action import Action,ActionDict,FilledAction
+from engine.BasicActions import ActionGo,ActionClose,ActionOpen
 
 #Needs to have:
 #room name  (this is what shows up on the map.  3 words long max)
@@ -60,6 +62,16 @@ class GameLocation(ContainerInterface,GameObject):
     def get_entrance_image(self):
         return self.image_name
     
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        actions=ActionDict()    
+        ret_text="<bf>"+self.get_room_name()+"</bf>\n"+self.description+"\n"
+        for exit in self.exits:
+            exit_text,exit_actions=exit.get_world_html_and_actions(subject,available_objects)
+            ret_text+=exit_text+"\n"
+            actions.add_action_dict(exit_actions)            
+        return ret_text,actions
+    
+    
 class GameExit(GameObject):
     def __init__(self,destination:GameLocation=None,base_noun="exit"):
         super().__init__(base_noun=base_noun)
@@ -92,6 +104,16 @@ class GameExit(GameObject):
             game_engine().writer.announce_action("You go through the "+self.get_noun_phrase())
             return True,1
         return False,0
+    
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        #Returns an html string and a list of actions that match the hyperlinks in the slot        
+        ret_txt=""
+        ret_actions=ActionDict()
+        if self.direction is None:
+            ret_txt=self.get_base_noun()
+        else:
+            ret_txt="There is a "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
+        return ret_txt,ret_actions              
 
 #DoorExits can be open or closed
 #if lockable, they can be locked or unlocked with the appropriate key
@@ -135,6 +157,16 @@ class DoorExit(GameExit,OpenableInterface):
         else:
             game_engine().writer.announce_failure("The door is closed.")
             return False,0
-        return True,1
+
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        #Returns an html string and a list of actions that match the hyperlinks in the slot        
+        ret_txt=""
+        ret_actions=ActionDict()
+        if self.is_open:
+            state_txt="an "+ret_actions.add_action_link(FilledAction(ActionClose(),subject,[self]),"open")            
+        else:
+            state_txt="a "+ret_actions.add_action_link(FilledAction(ActionOpen(),subject,[self]),"closed")                        
+        ret_txt="There is "+state_txt+" "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
+        return ret_txt,ret_actions       
 
 register_game_object_class("DoorExit",DoorExit)
