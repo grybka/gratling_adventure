@@ -238,4 +238,10 @@ class GameEngine(AbstractEngine):
         self.display.update_text("Debug mode deactivetd\n")
 
     
-    
+    def get_main_text(self):
+        all_possible_actions,word_choices,word_bad_choices,offered_actions=self.get_all_possible_choices()
+        my_text="\n"
+        my_text+=self.player_object.location.get_entrance_text()+"\n"
+        my_text+="Visible Exits: "
+        my_text+=comma_separate_list([add_a(obj.get_short_description()) for obj in self.player_object.location.exits])+"\n"
+        
