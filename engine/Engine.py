@@ -96,7 +96,7 @@ class GameEngine(AbstractEngine):
     def post_text(self,text):
         self.display.update_text(text)
 
-    def present_current_choices(self):
+    def get_all_possible_actions(self):
         all_possible_actions=[]
         if self.play_mode==PlayMode.EXPLORATION:
             #Get all of the normal actions that the player can perform
@@ -123,9 +123,9 @@ class GameEngine(AbstractEngine):
                 for fill in possible_fills:
                     all_possible_actions.append((action,fill,ActionPossibility.POSSIBLE))
 
-
-
-
+    def get_all_possible_choices(self):
+        all_possible_actions=self.get_all_possible_actions()
+        
         offered_actions={}
         word_choices=[]
         word_bad_choices=[]
@@ -136,6 +136,12 @@ class GameEngine(AbstractEngine):
                 word_choices.append(choice)
             else:
                 word_bad_choices.append(choice)
+        return all_possible_actions,word_choices,word_bad_choices,offered_actions
+
+
+    def get_current_choices(self):
+        all_possible_actions,word_choices,word_bad_choices,offered_actions=self.get_all_possible_choices()
+        
         self.display.update_choices(word_choices,word_bad_choices)
         self.last_presented_actions=offered_actions       
 
@@ -232,17 +238,4 @@ class GameEngine(AbstractEngine):
         self.display.update_text("Debug mode deactivetd\n")
 
     
-        
-
-    #DONE list of things the engine should handle
-    #player picks up an object - transfer_object_to_inventory
-    #NPC picks up object transfer_object_to_inventory
-    #player moves to a new location - move_character
-    #NPC moves to a new location - move_character
-
-    #TODO list of things the engine should handle
-    
-    
-    #player drops an object
-    #NPC drops an object
     
