@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import random
 from world.generation.MapGenerator import MapGenerator1
-from engine.Engine import GameEngine,GameState
+from engine.Engine import GameEngine
 from base.AbstractEngine import set_game_engine,game_engine
 import sys
 import pygame
@@ -38,6 +38,7 @@ if __name__ == '__main__':
     map_generator.generate_map()
     engine=GameEngine(map_generator.my_map)
     set_game_engine(engine)
+    engine.player_turn_start()
 
     app.run()
     

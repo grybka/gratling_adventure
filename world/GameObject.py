@@ -1,6 +1,7 @@
 #from base.ActionTemplate import ActionTemplate,ActionTemplateSlot
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.TaggedObject import TaggedObject,TagRequirements
+from base.Action import Action,ActionDict
 
 global _game_object_classes
 _game_object_classes={}
@@ -55,9 +56,14 @@ class GameObject(TaggedObject):
     def get_tags(self):
         return self.tags
     
-    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]):
+    #This gets called for every 'relevant' object each turn
+    #They get a chance to update the information presented to the user (in the AbstractEngine class)
+    #and return an ActionDict, which is a map of uuids to actions that the user can select from
+    #subject is the entity the player is controlling
+    #available objects are 'relevant' objects to the subject
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
         #Returns an html string and a list of actions that match the hyperlinks in the slot
-        return "",[]
+        return ActionDict()
 
     
 #I'm considering moving to separate the object class, which represents

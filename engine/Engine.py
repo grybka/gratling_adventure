@@ -1,5 +1,5 @@
 from base.AbstractDisplay import AbstractDisplay
-from base.AbstractEngine import AbstractEngine
+from base.AbstractEngine import AbstractEngine,add_a,comma_separate_list
 from world.GameObject import *
 from world.GameLocation import *
 from world.Player import Player
@@ -27,48 +27,8 @@ class PlayMode(Enum):
     EXPLORATION=1
     DEBUG=2
 
-def comma_separate_list(items):
-    if len(items)==0:
-        return ""
-    elif len(items)==1:
-        return items[0]
-    elif len(items)==2:
-        return items[0]+" and "+items[1]
-    else:
-        return ", ".join(items[:-1])+", and "+items[-1]
-    
-def add_a(word):
-    if word[0] in "aeiou":
-        return "an "+word
-    else:
-        return "a "+word
 
-#this class stores the state of the game - in particular actions that have happened since the last report
-#it is used to update the display
-class GameState:
-    def __init__(self):
-        self.room_text="test room text"
-        self.status_text="test status text"
-        self.items_text="test inventory text"
-        self.event_text="test event text"
-    
-    def reset_game_state_text(self):
-        self.room_text=""
-        self.status_text=""
-        self.items_text=""
-        self.event_text=""
-
-    def announce_action(self,text): #these go into events
-        print("announce action: ",text)
-        self.event_text+=text+"\n"
-
-    def get_message_object(self): #will be turned into json
-        return {"room_text":self.room_text,
-                "status_text":self.status_text,
-                "items_text":self.items_text,
-                "event_text":self.event_text}        
-
-class GameEngine(AbstractEngine,GameState):
+class GameEngine(AbstractEngine):
     def __init__(self,world_map=None):
         super().__init__()        
         self.reset_game_state_text()
@@ -77,7 +37,6 @@ class GameEngine(AbstractEngine,GameState):
         #Game World
         self.object_factory=ObjectFactory()
         self.player_object=Player()
-        #self.writer=TextWriter(display,self.player_object)
 
         self.world_map=world_map
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
@@ -88,25 +47,22 @@ class GameEngine(AbstractEngine,GameState):
 
         #command handling
         self.possible_actions=ActionDict()
-        #start game
-        self.turn_number=0
-        status=self.player_object.get_status_object()
-        status["turn_number"]=self.turn_number
-        #self.display.update_status(status)        
-        #self.present_current_choices()
-        self.player_turn_start()
+        #game init
+        self.turn_number=0              
 
-    def player_turn_start(self):
-        ...
-        #text,actions=self.player_object.location.get_world_html_and_actions(self.player_object,self.get_relevant_objects())
-        #self.possible_actions=actions
-        #self.display.update_text(text)        
+    def player_turn_start(self):        
+        relevant_objects=self.get_relevant_objects()
+        self.possible_actions=ActionDict()
+        for obj in relevant_objects:
+            actions=obj.get_world_html_and_actions(self.player_object,relevant_objects)
+            self.possible_actions.add_action_dict(actions)        
+        self.possible_actions=actions
 
     def get_relevant_objects(self):
         objects=[self.player_object.location]
         ret=[self.player_object.location]
         ret.extend(self.player_object.location.get_accessible_objects())
-        #print("ret is ",ret)
+        #print("relevant objects are ",ret)        
         return ret
     
     def update(self):

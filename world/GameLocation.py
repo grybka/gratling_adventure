@@ -62,14 +62,16 @@ class GameLocation(ContainerInterface,GameObject):
     def get_entrance_image(self):
         return self.image_name
     
-    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
-        actions=ActionDict()    
-        ret_text="<bf>"+self.get_room_name()+"</bf>\n"+self.description+"\n"
-        for exit in self.exits:
-            exit_text,exit_actions=exit.get_world_html_and_actions(subject,available_objects)
-            ret_text+=exit_text+"\n"
-            actions.add_action_dict(exit_actions)            
-        return ret_text,actions
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]) -> ActionDict:
+        engine=game_engine()
+        engine.set_room_description(self.get_entrance_text())
+        actions=ActionDict()            
+        #for exit in self.exits:
+        #    exit_text,exit_actions=exit.get_world_html_and_actions(subject,available_objects)
+        #    ret_text+=exit_text+"\n"
+        #    actions.add_action_dict(exit_actions)      
+
+        return actions
     
     
 class GameExit(GameObject):
@@ -107,13 +109,15 @@ class GameExit(GameObject):
     
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
+        engine=game_engine()
         ret_txt=""
         ret_actions=ActionDict()
         if self.direction is None:
             ret_txt=self.get_base_noun()
         else:
             ret_txt="There is a "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
-        return ret_txt,ret_actions              
+        engine.add_exit_info(ret_txt)
+        return ret_actions              
 
 #DoorExits can be open or closed
 #if lockable, they can be locked or unlocked with the appropriate key
@@ -167,6 +171,7 @@ class DoorExit(GameExit,OpenableInterface):
         else:
             state_txt="a "+ret_actions.add_action_link(FilledAction(ActionOpen(),subject,[self]),"closed")                        
         ret_txt="There is "+state_txt+" "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
-        return ret_txt,ret_actions       
+        game_engine().add_exit_info(ret_txt)
+        return ret_actions       
 
 register_game_object_class("DoorExit",DoorExit)
