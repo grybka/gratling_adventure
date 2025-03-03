@@ -35,7 +35,7 @@ class GameEngine(AbstractEngine):
         self.play_mode=PlayMode.EXPLORATION
         self.npcs=[] #list of all NPCs in the game
         #image file listing
-        self.image_file_map=yaml.safe_load(open("images/images.yaml"))
+        self.image_file_map=yaml.safe_load(open("static/images/images.yaml"))
         #Game World
         self.object_factory=ObjectFactory()
         self.player_object=Player()
@@ -43,6 +43,8 @@ class GameEngine(AbstractEngine):
         self.world_map=world_map
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
 
+        orb_of_debug=OrbOfDebug()
+        self.assign_object_location(orb_of_debug,self.world_map.get_starting_room())
         #test_npc=BasicNPC("test_npc")
         #self.npcs.append(test_npc)
         #self.assign_object_location(test_npc,self.world_map.get_starting_room())
@@ -57,14 +59,18 @@ class GameEngine(AbstractEngine):
         self.possible_actions=ActionDict()
         for obj in relevant_objects:
             actions=obj.get_world_html_and_actions(self.player_object,relevant_objects)
-            print("adding possible action from {}".format(obj))
+            #print("adding possible action from {}".format(obj))
             self.possible_actions.add_action_dict(actions)        
-            print("possible actions is now {}".format(self.possible_actions.keys()))
+            #print("possible actions is now {}".format(self.possible_actions.keys()))
+        if self.play_mode==PlayMode.DEBUG:
+            actions=get_debug_actions(self.player_object,relevant_objects)
+            self.possible_actions.add_action_dict(actions)
+
         #get the image file
-        print("image file is ",self.player_object.location.get_entrance_image())
-        print("image file map is ",self.image_file_map)
+        #print("image file is ",self.player_object.location.get_entrance_image())
+        #print("image file map is ",self.image_file_map)
         image_file=self.image_file_map["images"].get(self.player_object.location.get_entrance_image())
-        print("image file is",image_file)
+        #print("image file is",image_file)
         if image_file is not None:
             self.set_image("/static/images/"+image_file['file'])
 
@@ -76,6 +82,18 @@ class GameEngine(AbstractEngine):
         return ret
     
     def action_chosen(self,action_id):
+        #Special cases.  A few special commands use a flat_out string instead of a uuid.  I can't see how this could go wrong.
+        if action_id=="toggle_debug":
+            if self.play_mode==PlayMode.DEBUG:
+                self.exit_debug_mode()
+            else:
+                self.enter_debug_mode()
+            self.player_turn_start()
+            return
+            
+
+
+
         my_key=uuid.UUID(action_id)
         action_fill=self.possible_actions.get_action(my_key)
         if action_fill is None:
@@ -123,12 +141,12 @@ class GameEngine(AbstractEngine):
     #----DEBUG MODE FUNCTIONS-----
     def enter_debug_mode(self):
         self.play_mode=PlayMode.DEBUG
-        self.display.update_map(self.world_map.get_map_image(self.player_object.location,None)  )   
-
-        self.display.update_text("Debug mode activated\n")
+        self.announce_action("Debug mode activated")        
 
     def exit_debug_mode(self):
         self.play_mode=PlayMode.EXPLORATION
-        self.display.update_map(self.world_map.get_map_image(self.player_object.location,self.player_object.known_locations)  )   
-
-        self.display.update_text("Debug mode deactivetd\n")
+        self.announce_action("Debug mode deactivated")        
+        
+    def get_debug_actions(self,relevant_objects):
+        print("This function isn't finished")
+        

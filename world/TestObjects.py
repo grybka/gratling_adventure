@@ -1,5 +1,7 @@
 from world.GameObject import *
 from world.Character import *
+from base.Action import Action,ActionDict,FilledAction
+from engine.BasicActions import *
 import random
 
 #The sort of object that can contain other objects
@@ -19,6 +21,25 @@ class Carryable(GameObject):
         self.description="It's a carryable object" #description of the carryable
         #move this to player
         #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
+
+class OrbOfDebug(GameObject):
+    def __init__(self,base_noun="orb",noun_phrase="orb of debug"):
+        super().__init__(base_noun=base_noun)
+        self.tags.add("carryable")
+        self.description="It's an orb of debug" #description of the orb
+        
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        ret_actions=ActionDict()
+        focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
+        ret_txt=ret_actions.add_action_link(focus_action,self.get_noun_phrase())+"."
+        game_engine().add_to_floor(ret_txt)
+        return ret_actions
+
+    def get_focus_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
+        return ActionDict()
+
+
+
     
 class BasicNPC(Character):
     def __init__(self,base_noun="npc",is_carriable=False):

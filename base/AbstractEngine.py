@@ -45,6 +45,9 @@ class AbstractEngine:
     def set_image(self,image_name):
         self.image_name=image_name
 
+    def add_to_floor(self,text):
+        self.items_text+=text+"<br>"
+
     def get_message_object(self): #will be turned into json
         room_text=self.room_text
         for exit_info in self.exit_info:
