@@ -95,27 +95,38 @@ class Action:
         ...
 
 class FilledAction:
-    def __init__(self,action:Action,action_subject:TaggedObject,arguments:list[TaggedObject]):
+    def __init__(self,action:Action,action_subject:TaggedObject,arguments:list[TaggedObject],desc=None):
         self.id=uuid.uuid4()
         self.action=action
         self.action_subject=action_subject
         self.arguments=arguments
+        self.description=desc
 
     def get_link(self,text):
-        return "<a href="+self.id.__str__()+"title=\"this is hover text\">"+text+"</a>"
+        #return "<a href="+self.id.__str__()+"title=\"this is hover text\">"+text+"</a>"
+        if self.description is not None:
+            return "<a href=\"javascript:PostAction('"+self.id.__str__()+"')\" title=\""+self.description+"\">"+text+"</a>"
+        else:
+            return "<a href=\"javascript:PostAction('"+self.id.__str__()+"')\">"+text+"</a>"
+    
         
     
     def execute(self):
         return self.action.do_action(self.action_subject,self.arguments)
     
     def __repr__(self):
-        print("FilledAction: ",self.id,self.action,self.action_subject,self.arguments)
+        return "FilledAction: "+str(self.id)+str(self.action)+str(self.action_subject)+str(self.arguments)
+
+    def __str__(self):
+        return self.__repr__()
 
 class ActionDict:
     def __init__(self):
         self.actions={}
 
     def add_action_link(self,action:FilledAction,text:str):
+        print("adding action link",action.id)
+        print("action is {}".format(action))
         self.actions[action.id]=action
         return action.get_link(text)
     
@@ -127,9 +138,17 @@ class ActionDict:
         if id in self.actions:
             return self.actions[id]
         return None
+    
+    def keys(self):
+        return self.actions.keys()
 
     def __repr__(self):
         return self.actions.__repr__()
+    
+    def __str__(self):
+        return self.__repr__()
+    
+    
 
 
 global _actions_by_category

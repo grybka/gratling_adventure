@@ -3,6 +3,18 @@ from base.TaggedObject import TaggedObject,TagRequirements
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.Action import ActionPossibility
 
+#This isn't really an action, it tells one particular object to present
+#it's extended options to the user
+class ActionFocus(Action):
+    def __init__(self):
+        super().__init__(action_word="focus",n_args=1,tag_requirements=[TagRequirements()])
+
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        arguments[0].has_focus=True
+        return 0
+
+
+
 class ActionGo(Action):
     #go (exit)
     def __init__(self):
@@ -18,8 +30,9 @@ class ActionGo(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         exit=arguments[0]
         success,time=exit.go_action(action_subject)
-        if success:
-            game_engine().character_arrives(game_engine().player_object,exit.destination)
+#        if success:
+#            TODO handle 
+#            game_engine().character_arrives(game_engine().player_object,exit.destination)
         return time
 register_action("exploration",ActionGo())
 
@@ -41,7 +54,7 @@ class ActionTake(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         success=game_engine().transfer_object(arguments[0],action_subject)
         if success:
-            game_engine().writer.announce_action("You take the "+arguments[0].get_noun_phrase())     
+            game_engine().announce_action("You take the "+arguments[0].get_noun_phrase())     
         return 1
 register_action("exploration",ActionTake())
 
@@ -62,7 +75,7 @@ class ActionDrop(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         success=game_engine().transfer_object(arguments[0],action_subject.location)
         if success:
-            game_engine().writer.announce_action("You drop the "+arguments[0].get_noun_phrase())        
+            game_engine().announce_action("You drop the "+arguments[0].get_noun_phrase())        
         return 1
 register_action("exploration",ActionDrop())
 

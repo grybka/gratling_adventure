@@ -26,10 +26,14 @@ class AbstractEngine:
         self.status_text=""
         self.items_text=""
         self.event_text=""
+        self.image_name=""
         self.exit_info=[]
 
     def announce_action(self,text): #these go into events        
         self.event_text+=text+"<br>"
+
+    def announce_failure(self,text): #these go into events
+        self.event_text+="<strong>"+text+"</strong>"+"<br>"
 
     def set_room_description(self,text):
         self.room_text=text 
@@ -38,15 +42,20 @@ class AbstractEngine:
         print("adding exit info",text)
         self.exit_info.append(text)
 
+    def set_image(self,image_name):
+        self.image_name=image_name
 
     def get_message_object(self): #will be turned into json
         room_text=self.room_text
         for exit_info in self.exit_info:
             room_text+="<br>"+exit_info
-        return {"room_text":room_text,
+        ret= {"room_text":room_text,
                 "status_text":self.status_text,
                 "items_text":self.items_text,
-                "event_text":self.event_text} 
+                "event_text":self.event_text,
+                "image_name":self.image_name}
+        return ret
+                
 
 def set_game_engine(engine:AbstractEngine):
     global _game_engine

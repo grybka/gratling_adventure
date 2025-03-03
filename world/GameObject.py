@@ -34,6 +34,7 @@ class GameObject(TaggedObject):
         self.base_noun=base_noun
         self.noun_phrase=noun_phrase
         self.short_description=short_description
+        self.has_focus=False #whether to present focus actions next query
 
     def get_base_noun(self):
         return self.base_noun
@@ -63,7 +64,15 @@ class GameObject(TaggedObject):
     #available objects are 'relevant' objects to the subject
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
         #Returns an html string and a list of actions that match the hyperlinks in the slot
+        #remember to present extra actions if objects.has_focus is True 
+        self.has_focus=False
         return ActionDict()
+    
+    def get_focus_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
+        game_engine().announce_action("There is nothing special about the "+self.get_noun_phrase())
+        self.has_focus=False
+        return ActionDict()
+    
 
     
 #I'm considering moving to separate the object class, which represents
@@ -147,23 +156,23 @@ class LockableInterface(TaggedObject):
     
     def unlock_action(self,opener:GameObject,key:KeyInterface):
         if not self.is_locked:
-            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is not locked.")
+            game_engine().announce_failure("The "+self.get_noun_phrase()+" is not locked.")
             return False,0
         if key.my_lock_id!=self.lock_id:
-            game_engine().writer.announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
+            game_engine().announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
             return False,0
-        game_engine().writer.announce_action("You unlock the "+self.get_noun_phrase())
+        game_engine().announce_action("You unlock the "+self.get_noun_phrase())
         self.is_locked=False
         return True,1
     
     def lock_action(self,closer:GameObject,key:KeyInterface):
         if self.is_locked:
-            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already locked.")
+            game_engine().announce_failure("The "+self.get_noun_phrase()+" is already locked.")
             return False,0
         if key.my_lock_id!=self.lock_id:
-            game_engine().writer.announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
+            game_engine().announce_failure("The "+key.get_noun_phrase()+" does not fit the lock.")
             return False,0
-        game_engine().writer.announce_action("You lock the "+self.get_noun_phrase())
+        game_engine().announce_action("You lock the "+self.get_noun_phrase())
         self.is_locked=True
         return True,1
 
@@ -199,9 +208,9 @@ class OpenableInterface(LockableInterface,TaggedObject):
     
     def kick_action(self,opener:GameObject):
         if not self.has_tag("kickable"):
-            game_engine().writer.announce_failure("You can't kick the "+self.get_noun_phrase())
+            game_engine().announce_failure("You can't kick the "+self.get_noun_phrase())
             return False,0
-        game_engine().writer.announce_action("You kick the "+self.get_noun_phrase())
+        game_engine().announce_action("You kick the "+self.get_noun_phrase())
         self.is_stuck=False
         return True
     
@@ -212,15 +221,15 @@ class OpenableInterface(LockableInterface,TaggedObject):
         if not possible:
             game_engine().writer.announce_failure(message)
             return False,0
-        game_engine().writer.announce_action("You open the "+self.get_noun_phrase())
+        game_engine().announce_action("You open the "+self.get_noun_phrase())
         self.is_open=True
         return True,1
 
     def close_action(self,closer:GameObject):
         if not self.is_open:
-            game_engine().writer.announce_failure("The "+self.get_noun_phrase()+" is already closed.")
+            game_engine().announce_failure("The "+self.get_noun_phrase()+" is already closed.")
             return False,0
-        game_engine().writer.announce_action("You close the "+self.get_noun_phrase())
+        game_engine().announce_action("You close the "+self.get_noun_phrase())
         self.is_open=False
         return True,1
         

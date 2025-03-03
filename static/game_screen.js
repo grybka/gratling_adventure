@@ -14,14 +14,42 @@ function PostAction(action_id){
         UpdateGameScreen(data);            
         console.log(data);
     });
-}         
+}
+function RefreshGame(){
+    fetch('/refresh',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+    }).then(response => response.json())
+    .then(data => {        
+        UpdateGameScreen(data);            
+        console.log(data);
+    });
+}  
+function RegenerateWorld(){
+    fetch('/regenerate',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+    }).then(response => response.json())
+    .then(data => {        
+        UpdateGameScreen(data);            
+        console.log(data);
+    });
+}             
+
 //This updates the game screen with the new game state
 function UpdateGameScreen(game_state){ 
     document.getElementById("room_item").innerHTML = game_state["room_text"];
     document.getElementById("items_item").innerHTML = game_state["items_text"];
     document.getElementById("events_item").innerHTML = game_state["event_text"];
     document.getElementById("status_item").innerHTML = game_state["status_text"];
+    document.getElementById("game_image").src = game_state["image_name"];
+
     //Still to do
-    //room image
     //map image
 }

@@ -33,6 +33,7 @@ class BasicNPC(Character):
         self.move_randomly()
 
     def move_randomly(self):
+        #TODO THIS NEEDS TO BE REWORKED
         old_location=self.location
         exits=self.location.get_exits()
         if len(exits)==0:

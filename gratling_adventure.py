@@ -13,13 +13,35 @@ app=Flask(__name__)
 def sessions():
     return render_template('game_screen.html')
 
+
+@app.route('/refresh', methods=['POST'])
+def refresh():
+    engine=game_engine()
+    return jsonify(engine.get_message_object())
+
+@app.route('/regenerate', methods=['POST'])
+def regenerate():
+    new_world()
+    engine=game_engine()
+    return jsonify(engine.get_message_object())
+
+
+def new_world():
+    map_generator=MapGenerator1()
+    map_generator.generate_map()
+    engine=GameEngine(map_generator.my_map)
+    set_game_engine(engine)
+    engine.player_turn_start()
+
+
 @app.route('/action', methods=['POST'])
 def action():
     print('action was received!!!')
     print(request.data)
     data = request.get_json()
     print("data was {}".format(data))
-    engine=game_engine()    
+    engine=game_engine() 
+    engine.action_chosen(data['action'])   
     return jsonify(engine.get_message_object())
 
 def messageReceived(methods=['GET', 'POST']):
@@ -33,12 +55,13 @@ if __name__ == '__main__':
     #it's probably silly to use all of pygame just to draw the map
     pygame.init()
 
+    new_world()
     #Tuck this away somewhere else eventually.  I'd have a state manager, but I think I can do that with flask routes
-    map_generator=MapGenerator1()
-    map_generator.generate_map()
-    engine=GameEngine(map_generator.my_map)
-    set_game_engine(engine)
-    engine.player_turn_start()
+#    map_generator=MapGenerator1()
+ #   map_generator.generate_map()
+  #  engine=GameEngine(map_generator.my_map)
+  #  set_game_engine(engine)
+   # engine.player_turn_start()
 
     app.run()
     

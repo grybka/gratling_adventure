@@ -2,7 +2,7 @@ from world.GameObject import *
 #from base.ActionTemplate import ActionTemplate 
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.Action import Action,ActionDict,FilledAction
-from engine.BasicActions import ActionGo,ActionClose,ActionOpen
+from engine.BasicActions import *
 
 #Needs to have:
 #room name  (this is what shows up on the map.  3 words long max)
@@ -103,20 +103,26 @@ class GameExit(GameObject):
     def go_action(self,goer):
         success=game_engine().transfer_object(goer,self.destination)
         if success:
-            game_engine().writer.announce_action("You go through the "+self.get_noun_phrase())
+            game_engine().announce_action("You go through the "+self.get_noun_phrase())
             return True,1
         return False,0
     
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
         engine=game_engine()
+        #TODO I made the focus action here as a test, but is it really necessary?
         ret_txt=""
         ret_actions=ActionDict()
+        focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
         if self.direction is None:
-            ret_txt=self.get_base_noun()
+            ret_txt=ret_actions.add_action_link(focus_action,self.get_base_noun())+"."
         else:
-            ret_txt="There is a "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
+            go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
+            ret_txt="There is a "+ret_actions.add_action_link(focus_action,self.get_base_noun())+" to the "+ret_actions.add_action_link(go_action,self.direction)+"."
         engine.add_exit_info(ret_txt)
+        if self.has_focus:
+            ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
+            self.has_focus=False
         return ret_actions              
 
 #DoorExits can be open or closed
@@ -159,19 +165,26 @@ class DoorExit(GameExit,OpenableInterface):
         if self.is_open:
             return super().go_action(goer)
         else:
-            game_engine().writer.announce_failure("The door is closed.")
+            game_engine().announce_failure("The door is closed.")
             return False,0
 
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
         ret_txt=""
         ret_actions=ActionDict()
+        focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
         if self.is_open:
-            state_txt="an "+ret_actions.add_action_link(FilledAction(ActionClose(),subject,[self]),"open")            
+            close_action=FilledAction(ActionClose(),subject,[self],"Close the "+self.get_noun_phrase())
+            state_txt="an "+ret_actions.add_action_link(close_action,"open")            
         else:
-            state_txt="a "+ret_actions.add_action_link(FilledAction(ActionOpen(),subject,[self]),"closed")                        
-        ret_txt="There is "+state_txt+" "+self.get_base_noun()+" to the "+ret_actions.add_action_link(FilledAction(ActionGo(),subject,[self]),self.direction)+"."
+            open_action=FilledAction(ActionOpen(),subject,[self],"Open the "+self.get_noun_phrase())
+            state_txt="a "+ret_actions.add_action_link(open_action,"closed")    
+        go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
+        ret_txt="There is "+state_txt+" "+ret_actions.add_action_link(focus_action,self.get_base_noun())+" to the "+ret_actions.add_action_link(go_action,self.direction)+"."
         game_engine().add_exit_info(ret_txt)
+        if self.has_focus:
+            ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
+            self.has_focus=False
         return ret_actions       
 
 register_game_object_class("DoorExit",DoorExit)

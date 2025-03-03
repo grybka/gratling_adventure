@@ -10,10 +10,12 @@
         <h1>Game Screen</h1>
         <div class="grid_container">
             <div class="side_bar" id="side_bar">
-                <p> <a href="javascript:PostAction('test')" title="hover text">click</a> </p>
+                <p> <a href="javascript:RefreshGame()" title="hover text">Refresh Screen</a> </p>
+                <p> <a href="javascript:RegenerateWorld()" title="hover text">Regenerate World</a> </p>
+
             </div>
             <div class="image_item gamedisplay_item" id="image_item">
-                <p> image </p>
+                <img class="game_image" src="/static/images/atrium.png" id="game_image">
             </div>
             <div class="status_item gamedisplay_item" id="status_item">
                 <p> stats </p>
