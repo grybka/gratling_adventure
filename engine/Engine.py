@@ -12,6 +12,7 @@ from engine.DebugActions import *
 
 
 from world.LocationMap import LocationMapGrid
+from base.ObjectFactoryBase import set_object_factory,object_factory
 from world.ObjectFactory import ObjectFactory
 
 import uuid
@@ -37,7 +38,7 @@ class GameEngine(AbstractEngine):
         #image file listing
         self.image_file_map=yaml.safe_load(open("static/images/images.yaml"))
         #Game World
-        self.object_factory=ObjectFactory()
+        set_object_factory(ObjectFactory())        
         self.player_object=Player()
 
         self.world_map=world_map
@@ -57,6 +58,7 @@ class GameEngine(AbstractEngine):
     def player_turn_start(self):   
         relevant_objects=self.get_relevant_objects()
         self.possible_actions=ActionDict()
+        print("relevant objects are ",relevant_objects)
         for obj in relevant_objects:
             actions=obj.get_world_html_and_actions(self.player_object,relevant_objects)
             #print("adding possible action from {}".format(obj))

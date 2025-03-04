@@ -68,12 +68,6 @@ class GameObject(TaggedObject):
         self.has_focus=False
         return ActionDict()
     
-    def get_focus_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
-        game_engine().announce_action("There is nothing special about the "+self.get_noun_phrase())
-        self.has_focus=False
-        return ActionDict()
-    
-
     
 #I'm considering moving to separate the object class, which represents
 #game objects, from Implentation type subclasse
@@ -238,14 +232,3 @@ class LockObject(GameObject):
         super().__init__(base_noun=base_noun)
         self.description="It's a lock" #description of the lock
         self.my_key_id=None #the key that opens this lock
-
-#The sort of object one might put in their inventory
-class Carryable(GameObject):
-    def __init__(self,base_noun="item"):
-        super().__init__(base_noun=base_noun)
-        self.tags.add("carryable")
-        self.description="It's a carryable object" #description of the carryable
-        #move this to player
-        #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
-
-

@@ -125,8 +125,8 @@ class ActionDict:
         self.actions={}
 
     def add_action_link(self,action:FilledAction,text:str):
-        print("adding action link",action.id)
-        print("action is {}".format(action))
+        #print("adding action link",action.id)
+        #print("action is {}".format(action))
         self.actions[action.id]=action
         return action.get_link(text)
     

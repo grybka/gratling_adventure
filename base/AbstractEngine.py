@@ -28,6 +28,7 @@ class AbstractEngine:
         self.event_text=""
         self.image_name=""
         self.exit_info=[]
+        self.sub_menus={}
 
     def announce_action(self,text): #these go into events        
         self.event_text+=text+"<br>"
@@ -48,6 +49,9 @@ class AbstractEngine:
     def add_to_floor(self,text):
         self.items_text+=text+"<br>"
 
+    def add_sub_menu(self,id,menu):
+        self.sub_menus[id]=menu
+
     def get_message_object(self): #will be turned into json
         room_text=self.room_text
         for exit_info in self.exit_info:
@@ -56,7 +60,8 @@ class AbstractEngine:
                 "status_text":self.status_text,
                 "items_text":self.items_text,
                 "event_text":self.event_text,
-                "image_name":self.image_name}
+                "image_name":self.image_name,
+                "menu_info":self.sub_menus}
         return ret
                 
 

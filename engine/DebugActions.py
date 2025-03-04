@@ -1,7 +1,7 @@
 from base.Action import Action,register_action
 from base.TaggedObject import TaggedObject,TagRequirements
 from base.AbstractEngine import AbstractEngine,game_engine
-from world.ObjectFactory import ObjectFactory
+from base.ObjectFactoryBase import ObjectFactoryBase,object_factory
 
 class ActionEnterDebugMode(Action):
     #enter debug mode
@@ -29,9 +29,8 @@ class DebugActionCreate(Action):
         super().__init__(action_word="create",n_args=1,tag_requirements=[TagRequirements(required_tags=["carryable"])])
     
     def get_possible_fills(self,action_subject:TaggedObject,relevant_objects:list[TaggedObject]):
-        #override this.  I don't care about which actions are relevant
-        object_factory=game_engine().object_factory
-        creatable_objects=object_factory.get_creatable_objects()
+        #override this.  I don't care about which actions are relevant        
+        creatable_objects=object_factory().get_creatable_objects()
         print("creatable objects",creatable_objects)
         possible_fills=[]
         for object in creatable_objects:
@@ -40,9 +39,8 @@ class DebugActionCreate(Action):
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         obj_name=arguments[0].get_choice_word()
-        object_factory=game_engine().object_factory
-        obj=object_factory.create_object(obj_name,action_subject.location)
-        game_engine().writer.announce_action("You create the "+obj.get_choice_word())
+        obj=object_factory().create_object(obj_name,action_subject.location)
+        game_engine().announce_action("You create the "+obj.get_choice_word())
 #        action_subject.location.objects.append(obj)
         return 1
 register_action("debug",DebugActionCreate())

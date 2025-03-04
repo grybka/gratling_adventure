@@ -1,8 +1,10 @@
 from world.GameObject import *
 from world.Character import *
 from base.Action import Action,ActionDict,FilledAction
+from engine.DebugActions import *
 from engine.BasicActions import *
 import random
+import uuid
 
 #The sort of object that can contain other objects
 class BasicContainer(ContainerInterface,OpenableInterface,GameObject):
@@ -22,6 +24,16 @@ class Carryable(GameObject):
         #move this to player
         #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
 
+    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        print("it's called")
+        ret_actions=ActionDict()
+        ret_txt=self.get_noun_phrase()
+        game_engine().add_to_floor(ret_txt)
+        return ret_actions
+
+
+
+
 class OrbOfDebug(GameObject):
     def __init__(self,base_noun="orb",noun_phrase="orb of debug"):
         super().__init__(base_noun=base_noun)
@@ -30,9 +42,17 @@ class OrbOfDebug(GameObject):
         
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         ret_actions=ActionDict()
-        focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
-        ret_txt=ret_actions.add_action_link(focus_action,self.get_noun_phrase())+"."
+        #focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
+        #ret_txt=ret_actions.add_action_link(focus_action,self.get_noun_phrase())+"."
+        menu_id=uuid.uuid4()
+        ret_txt="<a href='javascript:ExpandActionMenu(\""+menu_id.__str__()+"\")'>"+self.get_noun_phrase()+"</a>"
         game_engine().add_to_floor(ret_txt)
+        possible_create_actions,_=DebugActionCreate().get_possible_fills(subject,available_objects)
+        #Sub when clicked
+        sub_txt="Create a "
+        for action in possible_create_actions:            
+            sub_txt+=ret_actions.add_action_link(FilledAction(DebugActionCreate(),subject,action)," "+action[0].get_noun_phrase())+", "                                
+        game_engine().add_sub_menu(menu_id.__str__(),{"text":sub_txt})
         return ret_actions
 
     def get_focus_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:

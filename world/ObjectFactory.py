@@ -1,9 +1,10 @@
+from base.ObjectFactoryBase import ObjectFactoryBase
 from world.GameObject import *
-from world.TestObjects import *
+from world.TestObjects import Carryable,BasicContainer,BasicKey
 from base.AbstractEngine import AbstractEngine, game_engine
 
 # This class is used to create objects in the game world.
-class ObjectFactory:
+class ObjectFactory(ObjectFactoryBase):
     def __init__(self):
         ...
 

@@ -182,9 +182,10 @@ class DoorExit(GameExit,OpenableInterface):
         go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
         ret_txt="There is "+state_txt+" "+ret_actions.add_action_link(focus_action,self.get_base_noun())+" to the "+ret_actions.add_action_link(go_action,self.direction)+"."
         game_engine().add_exit_info(ret_txt)
-        if self.has_focus:
-            ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
-            self.has_focus=False
+        #Actions that require submenus                
+        #if self.has_focus:
+            #ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
+            #self.has_focus=False
         return ret_actions       
 
 register_game_object_class("DoorExit",DoorExit)

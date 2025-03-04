@@ -1,3 +1,4 @@
+var menu_info={}; //This is a dictionary that holds the menu information for the current room, updated every Posted action
 //This posts an action to the server
 //action_id is a uuid4 that the server will use to identify the action
 function PostAction(action_id){
@@ -15,6 +16,11 @@ function PostAction(action_id){
         console.log(data);
     });
 }
+function ExpandActionMenu(menu_id){
+    var menu = document.getElementById("events_item");
+    menu.innerHTML += menu_info[menu_id]["text"];
+}
+
 function RefreshGame(){
     fetch('/refresh',{
         method: 'POST',
@@ -49,6 +55,7 @@ function UpdateGameScreen(game_state){
     document.getElementById("events_item").innerHTML = game_state["event_text"];
     document.getElementById("status_item").innerHTML = game_state["status_text"];
     document.getElementById("game_image").src = game_state["image_name"];
+    menu_info = game_state["menu_info"];
 
     //Still to do
     //map image

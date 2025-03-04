@@ -22,16 +22,3 @@ class Player(Character):
         #print("player ret is ",ret)
         #print("player inventory is ",self.inventory)
         return ret
-
-
-    def add_to_inventory(self,object:Carryable):
-        success,reason=super().add_to_inventory(object)
-        if success:
-            object.tags.add("carried_by_player")
-        return success,reason
-    
-    def remove_from_inventory(self,object:Carryable):
-        success,reason=super().remove_from_inventory(object)
-        if success:
-            object.tags.remove("carried_by_player")
-        return success,reason

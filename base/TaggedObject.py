@@ -11,6 +11,9 @@ class TaggedObject:
 
     def get_choice_word(self):
         return self.choice_word
+    
+    def get_noun_phrase(self):
+        return self.get_choice_word()
 
 class TagRequirements:
     def __init__(self,required_tags=[],forbidden_tags=[]):
