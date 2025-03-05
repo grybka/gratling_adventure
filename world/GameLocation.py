@@ -3,11 +3,12 @@ from world.GameObject import *
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.Action import Action,ActionDict,FilledAction
 from engine.BasicActions import *
+from base.FocusMenu import *
 
 #Needs to have:
 #room name  (this is what shows up on the map.  3 words long max)
 #description  (what gets read when you enter the room)
-class GameLocation(ContainerInterface,GameObject):
+class GameLocation(ContainerInterface,GameObject,FocusMenu):
     def __init__(self,base_noun="room"):
         super().__init__(base_noun=base_noun)
         #self.objects=[] #list of objects in the location
@@ -61,6 +62,12 @@ class GameLocation(ContainerInterface,GameObject):
 
     def get_entrance_image(self):
         return self.image_name
+    
+    def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
+        ret=FocusMenuInfo()
+        ret.html=self.get_entrance_text()
+        return ret
+
     
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]) -> ActionDict:
         engine=game_engine()
@@ -120,9 +127,6 @@ class GameExit(GameObject):
             go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
             ret_txt="There is a "+ret_actions.add_action_link(focus_action,self.get_base_noun())+" to the "+ret_actions.add_action_link(go_action,self.direction)+"."
         engine.add_exit_info(ret_txt)
-        if self.has_focus:
-            ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
-            self.has_focus=False
         return ret_actions              
 
 #DoorExits can be open or closed

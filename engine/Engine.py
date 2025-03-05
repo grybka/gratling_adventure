@@ -9,6 +9,7 @@ import yaml
 from base.Action import Action,get_actions
 from engine.BasicActions import *
 from engine.DebugActions import *
+from base.FocusMenu import *
 
 
 from world.LocationMap import LocationMapGrid
@@ -49,16 +50,25 @@ class GameEngine(AbstractEngine):
         #test_npc=BasicNPC("test_npc")
         #self.npcs.append(test_npc)
         #self.assign_object_location(test_npc,self.world_map.get_starting_room())
+        self.focus_object=self.player_object.location
 
         #command handling
         self.possible_actions=ActionDict()
         #game init
         self.turn_number=0              
 
+    def set_up_focus_menu(self,info:FocusMenuInfo):
+        self.set_room_description(info.html)
+        image_file=self.image_file_map["images"].get(info.image)
+        if image_file is not None:
+            self.set_image("/static/images/"+image_file['file'])
+
+
     def player_turn_start(self):   
         relevant_objects=self.get_relevant_objects()
         self.possible_actions=ActionDict()
         print("relevant objects are ",relevant_objects)
+        """
         for obj in relevant_objects:
             actions=obj.get_world_html_and_actions(self.player_object,relevant_objects)
             #print("adding possible action from {}".format(obj))
@@ -67,14 +77,13 @@ class GameEngine(AbstractEngine):
         if self.play_mode==PlayMode.DEBUG:
             actions=get_debug_actions(self.player_object,relevant_objects)
             self.possible_actions.add_action_dict(actions)
-
+        """
+        focus_info=self.focus_object.get_focus_html_and_actions(self.player_object,relevant_objects)
+        self.set_up_focus_menu(focus_info)
         #get the image file
         #print("image file is ",self.player_object.location.get_entrance_image())
         #print("image file map is ",self.image_file_map)
-        image_file=self.image_file_map["images"].get(self.player_object.location.get_entrance_image())
-        #print("image file is",image_file)
-        if image_file is not None:
-            self.set_image("/static/images/"+image_file['file'])
+        
 
     def get_relevant_objects(self):
         objects=[self.player_object.location]

@@ -72,3 +72,7 @@ def set_game_engine(engine:AbstractEngine):
 def game_engine() -> AbstractEngine:
     global _game_engine
     return _game_engine
+
+#helpers to make html
+def submenu_link(menu_id,text):
+    return "<a href='javascript:ExpandActionMenu(\""+menu_id.__str__()+"\")'>"+text+"</a>"

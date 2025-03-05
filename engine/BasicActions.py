@@ -3,15 +3,12 @@ from base.TaggedObject import TaggedObject,TagRequirements
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.Action import ActionPossibility
 
-#This isn't really an action, it tells one particular object to present
-#it's extended options to the user
 class ActionFocus(Action):
     def __init__(self):
         super().__init__(action_word="focus",n_args=1,tag_requirements=[TagRequirements()])
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
-        arguments[0].has_focus=True
-        return 0
+        game_engine().set_focus(arguments[0])
 
 
 

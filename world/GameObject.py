@@ -1,7 +1,8 @@
 #from base.ActionTemplate import ActionTemplate,ActionTemplateSlot
 from base.AbstractEngine import AbstractEngine,game_engine
 from base.TaggedObject import TaggedObject,TagRequirements
-from base.Action import Action,ActionDict
+from base.Action import *
+from engine.BasicActions import *
 
 global _game_object_classes
 _game_object_classes={}
@@ -22,11 +23,6 @@ def get_game_object_class(class_name):
 #short description: an iron door to the east
 #TODO add more if necessary
 
-
-
-
-
-
 class GameObject(TaggedObject):
     def __init__(self,base_noun="object",noun_phrase=None,short_description=None,**kwargs):
         super().__init__(**kwargs)
@@ -34,7 +30,6 @@ class GameObject(TaggedObject):
         self.base_noun=base_noun
         self.noun_phrase=noun_phrase
         self.short_description=short_description
-        self.has_focus=False #whether to present focus actions next query
 
     def get_base_noun(self):
         return self.base_noun
@@ -57,6 +52,10 @@ class GameObject(TaggedObject):
     def get_tags(self):
         return self.tags
     
+    def examine_action(self,subject:TaggedObject):
+        game_engine().announce_action("There isn't anything special about the "+self.get_noun_phrase())
+        return 0
+    
     #This gets called for every 'relevant' object each turn
     #They get a chance to update the information presented to the user (in the AbstractEngine class)
     #and return an ActionDict, which is a map of uuids to actions that the user can select from
@@ -65,8 +64,13 @@ class GameObject(TaggedObject):
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
         #Returns an html string and a list of actions that match the hyperlinks in the slot
         #remember to present extra actions if objects.has_focus is True 
-        self.has_focus=False
         return ActionDict()
+    
+    def generate_action_submenus(self,submenu_id,subject:TaggedObject,available_objects:list[TaggedObject]):
+        ret_actions=ActionDict()
+        examine_txt=ret_actions.add_action_link(FilledAction(ActionExamine(),subject,[self]),"examine")
+        return ret_actions,[examine_txt]
+    
     
     
 #I'm considering moving to separate the object class, which represents
@@ -169,6 +173,31 @@ class LockableInterface(TaggedObject):
         game_engine().announce_action("You lock the "+self.get_noun_phrase())
         self.is_locked=True
         return True,1
+    
+    def generate_action_submenus(self,submenu_id,subject:TaggedObject,available_objects:list[TaggedObject]):
+        verb_list=[]
+        ret_actions=ActionDict()
+        if self.is_locked:
+            #check if any of the relevant objects can be used to unlock me
+            unlocking_objects=[]
+            for object in available_objects:
+                if isinstance(object,KeyInterface) and self.can_unlock(subject,object)[0]:
+                    unlocking_objects.append(object)
+            if len(unlocking_objects)>0: #if something can unlock me
+                #Make a key submenu
+                key_menu_id=uuid.uuid4()
+                key_menu_txt="Unlock with: "
+                for key in unlocking_objects:
+                    #Make an entry for each key
+                    key_txt=ret_actions.add_action_link(FilledAction(ActionUnlock(),subject,[self,key]),key.get_noun_phrase())
+                    key_menu_txt+=key_txt+", "
+                game_engine().add_sub_menu(key_menu_id.__str__(),{"text":key_menu_txt})
+                #add unlock to the submenu
+                unlock_txt="<a href='javascript:ExpandActionMenu(\""+key_menu_id.__str__()+"\")'>unlock</a>"
+                verb_list.append(unlock_txt)
+        return ret_actions,verb_list
+    
+    
 
 #do I put locks and traps here?  Or do I have a
 #LockedOpenableInterface?  Lets suppose it all goes here.
