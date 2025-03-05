@@ -53,13 +53,15 @@ function RegenerateWorld(){
 function UpdateGameScreen(game_state){ 
     document.getElementById("room_item").innerHTML = game_state["room_text"];
     document.getElementById("items_item").innerHTML = game_state["items_text"];
-    console.log(game_events);
-    game_events = game_state["events"].concat(game_events);
     var events_html="<ul>";
-    game_events.forEach(function (element) {
-            events_html+= "<li>"+element+"</li>";
-        });
+    game_state["events"].forEach(function (element) {
+        events_html+= "<li>"+element+"</li>";        
+    });
+    game_events.forEach(function (element) {        
+        events_html+= "<li class=\"grey_text\">"+element+"</li>";
+    });
     events_html+="</ul>";
+    game_events = game_state["events"].concat(game_events);    
     document.getElementById("events_item").innerHTML = events_html;
     document.getElementById("status_item").innerHTML = game_state["status_text"];
     document.getElementById("game_image").src = game_state["image_name"];

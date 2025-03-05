@@ -81,9 +81,10 @@ class GameEngine(AbstractEngine):
         self.possible_actions.add_action_dict(focus_info.actions)
         #Inventory Text
         for item in self.player_object.get_contents():
-            txt,actions=item.get_item_html_and_actions(self.player_object,relevant_objects)
+            #txt,actions=item.get_item_html_and_actions(self.player_object,relevant_objects)
+            txt=item.get_item_html_and_actions(self.player_object,relevant_objects,self.possible_actions)
             self.add_to_floor(txt)
-            self.possible_actions.add_action_dict(actions)
+            #self.possible_actions.add_action_dict(actions)
         self.set_up_focus_menu(focus_info)
         #get the image file
         #print("image file is ",self.player_object.location.get_entrance_image())

@@ -6,6 +6,7 @@ class FocusMenuInfo:
         self.actions=ActionDict()
         self.html=""
         self.image=""
+        self.options=[]        
 
     def add_text_and_action( self,text_action_tuple ):
         text=text_action_tuple[0]

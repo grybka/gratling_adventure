@@ -77,15 +77,15 @@ class GameObject(TaggedObject):
         ret.html=text
         return ret    
     
-    def get_item_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]):
-        actions=ActionDict()
+    def get_item_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject],actiondict:ActionDict):
+        #actions=ActionDict()
         #if self.is_considerable:
         #    focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())        
         #    ret_txt=actions.add_action_link(focus_action,self.get_noun_phrase())
         #else:
         #    ret_txt=self.get_noun_phrase()
-        ret_txt=self.get_focus_noun_phrase(subject,actions)
-        return ret_txt,actions
+        ret_txt=self.get_focus_noun_phrase(subject,actiondict)
+        return ret_txt
 
     
     def examine_action(self,subject:TaggedObject):

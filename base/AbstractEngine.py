@@ -29,6 +29,7 @@ class AbstractEngine:
         self.image_name=""
         self.exit_info=[]
         self.sub_menus={}
+        self.room_features=[]
 
     def announce_action(self,text): #these go into events        
         self.events.append(text)        
@@ -37,7 +38,7 @@ class AbstractEngine:
         self.events.append("<strong>"+text+"</strong>")
 
     def set_room_description(self,text):
-        self.room_text=text 
+        self.room_text=text     
 
     #def add_exit_info(self,text):
     #    self.exit_info.append(text)
@@ -60,7 +61,8 @@ class AbstractEngine:
                 "items_text":self.items_text,
                 "events":self.events,
                 "image_name":self.image_name,
-                "menu_info":self.sub_menus}
+                "menu_info":self.sub_menus,
+                "room_features":self.room_features}
         return ret
                 
 

@@ -55,7 +55,7 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
         return self.description
     
     def get_entrance_text(self):
-        return "<u>"+self.get_room_name()+"</u>\n"+self.description
+        return "<strong>"+self.get_room_name()+"</strong><br>"+self.description
 
     def set_entrance_image(self,image_name):
         self.image_name=image_name
@@ -66,13 +66,16 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()
         ret.html=self.get_entrance_text()+"<br>"        
-        for exit in self.exits:
-            ret.add_text_and_action(exit.get_exit_html_and_actions(subject,available_objects))    
+        for exit in self.exits:      
+            txt=exit.get_exit_html_and_actions(subject,available_objects,ret.actions)
+            ret.html+=txt            
         if len(self.get_contents())>0:
             ret.html+="<br>Objects in the room:<br>"
         for obj in self.get_contents():
             if obj is not subject:
-                ret.add_text_and_action(obj.get_item_html_and_actions(subject,available_objects)) 
+                txt=obj.get_item_html_and_actions(subject,available_objects,ret.actions)
+                ret.html+=txt
+                #ret.add_text_and_action(obj.get_item_html_and_actions(subject,available_objects)) 
         print("actions: "+str(ret.actions))      
         return ret
 
@@ -124,12 +127,12 @@ class GameExit(GameObject):
         return False,0
     
     #called from the room when making its menu
-    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject],actiondict:ActionDict):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
-        ret_action=ActionDict()
+        #ret_action=ActionDict()
         go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())        
-        ret_txt=ret_action.add_action_link(go_action,"Go")+" through the "+self.get_focus_noun_phrase(subject,ret_action)+"."        
-        return ret_txt,ret_action
+        ret_txt=actiondict.add_action_link(go_action,"Go")+" through the "+self.get_focus_noun_phrase(subject,actiondict)+"."        
+        return ret_txt
 
 #DoorExits can be open or closed
 #if lockable, they can be locked or unlocked with the appropriate key

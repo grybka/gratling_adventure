@@ -37,7 +37,7 @@ class Symbol:
     def from_string(tok):
         assert(len(tok)>1)
         if tok[0]=='"':
-            assert(len(tok)>3)
+            assert(len(tok)>2)
             return Symbol(tok[1:-1],True)
         else:
             return Symbol(tok,False)

@@ -54,3 +54,6 @@
     margin: auto;
     display: block;
  }
+ .grey_text {
+        color: grey;
+ }
