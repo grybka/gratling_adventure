@@ -43,6 +43,8 @@
      grid-column: 4 / span 1;
  }
  .events_item {
+    height: 200px;
+    overflow: scroll;
      grid-row-start: 4;
      grid-row-end: 5;
      grid-column: 2 / span 2;

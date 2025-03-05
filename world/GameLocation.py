@@ -65,9 +65,14 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
     
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()
-        ret.html=self.get_entrance_text()+"<br>"
+        ret.html=self.get_entrance_text()+"<br>"        
         for exit in self.exits:
-            ret.add_text_and_action(exit.get_exit_html_and_actions(subject,available_objects))      
+            ret.add_text_and_action(exit.get_exit_html_and_actions(subject,available_objects))    
+        if len(self.get_contents())>0:
+            ret.html+="<br>Objects in the room:<br>"
+        for obj in self.get_contents():
+            if obj is not subject:
+                ret.add_text_and_action(obj.get_item_html_and_actions(subject,available_objects)) 
         print("actions: "+str(ret.actions))      
         return ret
 
@@ -111,11 +116,9 @@ class GameExit(GameObject):
         else:
             return self.get_base_noun()+" to the "+self.direction
 
-    def go_action(self,goer):
-        print("go action called")
+    def go_action(self,goer):        
         success=game_engine().transfer_object(goer,self.destination)
-        if success:
-            print("announcing")
+        if success:            
             game_engine().announce_action("You go through the "+self.get_noun_phrase())
             return True,1
         return False,0

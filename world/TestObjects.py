@@ -16,21 +16,17 @@ class BasicContainer(ContainerInterface,OpenableInterface,GameObject):
         self.add_tag("accepts_widthdraw")
         print("my tags are ",self.tags)
 
-#The sort of object one might put in their inventory
-class Carryable(GameObject):
+class BasicItem(CarryableInterface,GameObject):
     def __init__(self,base_noun="item"):
         super().__init__(base_noun=base_noun)
-        self.tags.add("carryable")
-        self.description="It's a carryable object" #description of the carryable
-        #move this to player
-        #self.action_templates_function_map.append(ActionTemplate(["take",self],referring_object=self,referring_function=self.take))
+        self.description="It's the most generic item you can think of" #description of the carryable
+        self.is_considerable=True
 
-    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
-        print("it's called")
-        ret_actions=ActionDict()
-        ret_txt=self.get_noun_phrase()
-        game_engine().add_to_floor(ret_txt)
-        return ret_actions
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        options=[]
+        options.extend(CarryableInterface.get_focus_menu_items(self,subject,available_objects,actiondict))
+        return options
+
 
 
 

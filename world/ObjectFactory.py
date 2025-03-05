@@ -1,6 +1,6 @@
 from base.ObjectFactoryBase import ObjectFactoryBase
 from world.GameObject import *
-from world.TestObjects import Carryable,BasicContainer,BasicKey
+from world.TestObjects import *
 from base.AbstractEngine import AbstractEngine, game_engine
 
 # This class is used to create objects in the game world.
@@ -14,9 +14,9 @@ class ObjectFactory(ObjectFactoryBase):
 
     def create_object(self,object_type,location):
         if object_type=="item":
-            new_object=Carryable()
-            new_object.name="new object"
-            new_object.description="a new object"
+            new_object=BasicItem()
+            #new_object.name="new object"
+            #new_object.description="a new object"
             new_object.tags.add("debug")
         if object_type=="container":
             new_object=BasicContainer()

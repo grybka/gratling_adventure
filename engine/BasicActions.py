@@ -60,7 +60,8 @@ class ActionTake(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         success=game_engine().transfer_object(arguments[0],action_subject)
         if success:
-            game_engine().announce_action("You take the "+arguments[0].get_noun_phrase())     
+            game_engine().announce_action("You take the "+arguments[0].get_noun_phrase())   
+            game_engine().return_focus()  
         return 1
 register_action("exploration",ActionTake())
 
@@ -73,7 +74,7 @@ class ActionDrop(Action):
         item=arguments[0]
         #I cannot drop things I do not have
         if item.location!=action_subject:
-            return ActionPossibility.IMPOSSIBLE        
+            return ActionPossibility.IMPOSSIBLE                
         return ActionPossibility.POSSIBLE
         
 
@@ -81,7 +82,8 @@ class ActionDrop(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         success=game_engine().transfer_object(arguments[0],action_subject.location)
         if success:
-            game_engine().announce_action("You drop the "+arguments[0].get_noun_phrase())        
+            game_engine().announce_action("You drop the "+arguments[0].get_noun_phrase())     
+            game_engine().return_focus()   
         return 1
 register_action("exploration",ActionDrop())
 

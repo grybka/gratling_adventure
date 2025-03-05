@@ -63,8 +63,17 @@ class GameObject(TaggedObject):
     
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()        
-        text="There is little to say about the "+self.get_noun_phrase()+".<br>"       
-        text+=ret.actions.add_action_link(FilledAction(ActionReturnFocus(),subject,[],"Return to what you were doing"),"You return to what you were doing.")        
+        if self.short_description is not None:
+            text=self.short_description+"<br>"
+        else:
+            text="There is little to say about the "+self.get_noun_phrase()+".<br>"
+        focus_menu_items=self.get_focus_menu_items(subject,available_objects,ret.actions)
+        text+="<ul>"
+        if len(focus_menu_items)>0:            
+            for option in focus_menu_items:
+                text+="<li>"+option+"</li>"             
+        text+="<li>"+ret.actions.add_action_link(FilledAction(ActionReturnFocus(),subject,[],"Return to what you were doing"),"You return to what you were doing.")+"</li>"
+        text+="</ul>"  
         ret.html=text
         return ret    
     
@@ -98,6 +107,9 @@ class GameObject(TaggedObject):
         examine_txt=ret_actions.add_action_link(FilledAction(ActionExamine(),subject,[self]),"examine")
         return ret_actions,[examine_txt]
     
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        return []
+    
     
     
 #A game object interface is a class that is meant to be inherited by other classes
@@ -113,6 +125,18 @@ class CarryableInterface(GameObjectInterface):
         super().__init__(**kwargs)
         self.add_tag("carryable")
         #TODO WORK HERE 
+    
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        if subject.has_tag("container"):
+            if subject.in_contents(self):
+                drop_txt="You "+actiondict.add_action_link(FilledAction(ActionDrop(),subject,[self]),"drop")+" the "+self.get_noun_phrase()+" on the floor."
+                return [drop_txt]
+            else:
+                take_txt="You "+actiondict.add_action_link(FilledAction(ActionTake(),subject,[self]),"take")+" the "+self.get_noun_phrase()+" and put it in in your pack."
+                return [take_txt]
+        return []
+        
+
 
 
 class ContainerInterface(TaggedObject):
@@ -121,6 +145,9 @@ class ContainerInterface(TaggedObject):
         self.add_tag("container")
         self.max_inventory_size=kwargs.get("max_inventory_size",None)
         self.inventory=[]
+
+    def in_contents(self,object):
+        return object in self.inventory
 
     def get_contents(self):
         ret=[]
