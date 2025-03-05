@@ -65,7 +65,10 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
     
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()
-        ret.html=self.get_entrance_text()
+        ret.html=self.get_entrance_text()+"<br>"
+        for exit in self.exits:
+            ret.add_text_and_action(exit.get_exit_html_and_actions(subject,available_objects))      
+        print("actions: "+str(ret.actions))      
         return ret
 
     
@@ -91,6 +94,7 @@ class GameExit(GameObject):
         #use location for origin, already in class
         #stuff for words
         self.direction=None #the direction that this exit leads to
+        self.is_considerable=False
 
     def is_passable(self):
         return True
@@ -108,26 +112,21 @@ class GameExit(GameObject):
             return self.get_base_noun()+" to the "+self.direction
 
     def go_action(self,goer):
+        print("go action called")
         success=game_engine().transfer_object(goer,self.destination)
         if success:
+            print("announcing")
             game_engine().announce_action("You go through the "+self.get_noun_phrase())
             return True,1
         return False,0
     
-    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+    #called from the room when making its menu
+    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
-        engine=game_engine()
-        #TODO I made the focus action here as a test, but is it really necessary?
-        ret_txt=""
-        ret_actions=ActionDict()
-        focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
-        if self.direction is None:
-            ret_txt=ret_actions.add_action_link(focus_action,self.get_base_noun())+"."
-        else:
-            go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
-            ret_txt="There is a "+ret_actions.add_action_link(focus_action,self.get_base_noun())+" to the "+ret_actions.add_action_link(go_action,self.direction)+"."
-        engine.add_exit_info(ret_txt)
-        return ret_actions              
+        ret_action=ActionDict()
+        go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())        
+        ret_txt=ret_action.add_action_link(go_action,"Go")+" through the "+self.get_focus_noun_phrase(subject,ret_action)+"."        
+        return ret_txt,ret_action
 
 #DoorExits can be open or closed
 #if lockable, they can be locked or unlocked with the appropriate key
@@ -171,6 +170,14 @@ class DoorExit(GameExit,OpenableInterface):
         else:
             game_engine().announce_failure("The door is closed.")
             return False,0
+        
+    #def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
+        #...
+        #if the door is open, then one can go or focus on it
+        #if the player believes the door is closed, then they can open it
+        #if the player believes the door to be locked, then they can try to unlock it
+        #if the player believes the door to be stuck, then they can try to unstick it
+
 
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        

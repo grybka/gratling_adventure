@@ -9,7 +9,15 @@ class ActionFocus(Action):
 
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         game_engine().set_focus(arguments[0])
+        return 0
 
+class ActionReturnFocus(Action):
+    def __init__(self):
+        super().__init__(action_word="unfocus",n_args=0,tag_requirements=[])
+
+    def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
+        game_engine().return_focus()
+        return 0
 
 
 class ActionGo(Action):
@@ -27,6 +35,7 @@ class ActionGo(Action):
     def do_action(self,action_subject:TaggedObject,arguments:list[TaggedObject]):
         exit=arguments[0]
         success,time=exit.go_action(action_subject)
+        game_engine().set_focus(action_subject.location)
 #        if success:
 #            TODO handle 
 #            game_engine().character_arrives(game_engine().player_object,exit.destination)

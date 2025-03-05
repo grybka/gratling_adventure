@@ -1,5 +1,6 @@
 #from base.ActionTemplate import ActionTemplate,ActionTemplateSlot
 from base.AbstractEngine import AbstractEngine,game_engine
+from base.FocusMenu import FocusMenuInfo
 from base.TaggedObject import TaggedObject,TagRequirements
 from base.Action import *
 from engine.BasicActions import *
@@ -30,6 +31,7 @@ class GameObject(TaggedObject):
         self.base_noun=base_noun
         self.noun_phrase=noun_phrase
         self.short_description=short_description
+        self.is_considerable=False #if the object is worth considering (i.e. has a focus menu)
 
     def get_base_noun(self):
         return self.base_noun
@@ -50,7 +52,32 @@ class GameObject(TaggedObject):
         self.location=location
 
     def get_tags(self):
-        return self.tags
+        return self.tags         
+    
+    def get_focus_noun_phrase(self,subject,actiondict:ActionDict):
+        if self.is_considerable:
+            focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())        
+            return actiondict.add_action_link(focus_action,self.get_noun_phrase())
+        else:
+            return self.get_noun_phrase()        
+    
+    def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
+        ret=FocusMenuInfo()        
+        text="There is little to say about the "+self.get_noun_phrase()+".<br>"       
+        text+=ret.actions.add_action_link(FilledAction(ActionReturnFocus(),subject,[],"Return to what you were doing"),"You return to what you were doing.")        
+        ret.html=text
+        return ret    
+    
+    def get_item_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]):
+        actions=ActionDict()
+        #if self.is_considerable:
+        #    focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())        
+        #    ret_txt=actions.add_action_link(focus_action,self.get_noun_phrase())
+        #else:
+        #    ret_txt=self.get_noun_phrase()
+        ret_txt=self.get_focus_noun_phrase(subject,actions)
+        return ret_txt,actions
+
     
     def examine_action(self,subject:TaggedObject):
         game_engine().announce_action("There isn't anything special about the "+self.get_noun_phrase())
@@ -73,17 +100,20 @@ class GameObject(TaggedObject):
     
     
     
-#I'm considering moving to separate the object class, which represents
-#game objects, from Implentation type subclasse
-#So Container or Carriable might be Implementations because it just guarantees that
-#they have certain functions, and an object could be one or the other or both
-#but maybe I dont need this and can just have a bit of redundant code
+#A game object interface is a class that is meant to be inherited by other classes
+#It is a class that is meant to be used as a mixin (I just learned that word!)
+#it yields a list of actions that are appropriate for an object with that functionality
+class GameObjectInterface(GameObject):
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        return []
 
-#Everything that can store things is a container.  A chest is a container, a location is a container
-#Moving process goes as so:
-#source -> can it be removed?
-#destination -> can it be added?
-#move happens
+
+class CarryableInterface(GameObjectInterface):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.add_tag("carryable")
+        #TODO WORK HERE 
+
 
 class ContainerInterface(TaggedObject):
     def __init__(self,**kwargs):

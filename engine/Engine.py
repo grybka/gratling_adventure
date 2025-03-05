@@ -46,7 +46,8 @@ class GameEngine(AbstractEngine):
         self.assign_object_location(self.player_object,self.world_map.get_starting_room())
 
         orb_of_debug=OrbOfDebug()
-        self.assign_object_location(orb_of_debug,self.world_map.get_starting_room())
+        #self.assign_object_location(orb_of_debug,self.world_map.get_starting_room())
+        self.assign_object_location(orb_of_debug,self.player_object)
         #test_npc=BasicNPC("test_npc")
         #self.npcs.append(test_npc)
         #self.assign_object_location(test_npc,self.world_map.get_starting_room())
@@ -55,7 +56,14 @@ class GameEngine(AbstractEngine):
         #command handling
         self.possible_actions=ActionDict()
         #game init
-        self.turn_number=0              
+        self.turn_number=0 
+
+    def return_focus(self):
+        #returns to focusing on the room, later maybe keep a stack of menus?
+        self.focus_object=self.player_object.location
+
+    def set_focus(self,focus_object):
+        self.focus_object=focus_object     
 
     def set_up_focus_menu(self,info:FocusMenuInfo):
         self.set_room_description(info.html)
@@ -67,18 +75,15 @@ class GameEngine(AbstractEngine):
     def player_turn_start(self):   
         relevant_objects=self.get_relevant_objects()
         self.possible_actions=ActionDict()
-        print("relevant objects are ",relevant_objects)
-        """
-        for obj in relevant_objects:
-            actions=obj.get_world_html_and_actions(self.player_object,relevant_objects)
-            #print("adding possible action from {}".format(obj))
-            self.possible_actions.add_action_dict(actions)        
-            #print("possible actions is now {}".format(self.possible_actions.keys()))
-        if self.play_mode==PlayMode.DEBUG:
-            actions=get_debug_actions(self.player_object,relevant_objects)
-            self.possible_actions.add_action_dict(actions)
-        """
+        #print("relevant objects are ",relevant_objects)
+        #Room Text
         focus_info=self.focus_object.get_focus_html_and_actions(self.player_object,relevant_objects)
+        self.possible_actions.add_action_dict(focus_info.actions)
+        #Inventory Text
+        for item in self.player_object.get_contents():
+            txt,actions=item.get_item_html_and_actions(self.player_object,relevant_objects)
+            self.add_to_floor(txt)
+            self.possible_actions.add_action_dict(actions)
         self.set_up_focus_menu(focus_info)
         #get the image file
         #print("image file is ",self.player_object.location.get_entrance_image())

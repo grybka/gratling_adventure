@@ -7,6 +7,12 @@ class FocusMenuInfo:
         self.html=""
         self.image=""
 
+    def add_text_and_action( self,text_action_tuple ):
+        text=text_action_tuple[0]
+        action=text_action_tuple[1]
+        self.html+=text+"<br>"
+        self.actions.add_action_dict(action)
+
 class FocusMenu:
     def __init__(self):
         ...

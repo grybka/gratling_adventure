@@ -3,6 +3,7 @@ from world.Character import *
 from base.Action import Action,ActionDict,FilledAction
 from engine.DebugActions import *
 from engine.BasicActions import *
+from base.FocusMenu import *
 import random
 import uuid
 
@@ -35,28 +36,23 @@ class Carryable(GameObject):
 
 
 class OrbOfDebug(GameObject):
-    def __init__(self,base_noun="orb",noun_phrase="orb of debug"):
-        super().__init__(base_noun=base_noun)
+    def __init__(self,base_noun="orb",noun_phrase="Orb of Debug"):
+        super().__init__(base_noun=base_noun,noun_phrase=noun_phrase)
         self.tags.add("carryable")
         self.description="It's an orb of debug" #description of the orb
-        
-    def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
-        ret_actions=ActionDict()
-        #focus_action=FilledAction(ActionFocus(),subject,[self],"Consider the "+self.get_noun_phrase())
-        #ret_txt=ret_actions.add_action_link(focus_action,self.get_noun_phrase())+"."
-        menu_id=uuid.uuid4()
-        ret_txt="<a href='javascript:ExpandActionMenu(\""+menu_id.__str__()+"\")'>"+self.get_noun_phrase()+"</a>"
-        game_engine().add_to_floor(ret_txt)
-        possible_create_actions,_=DebugActionCreate().get_possible_fills(subject,available_objects)
-        #Sub when clicked
-        sub_txt="Create a "
-        for action in possible_create_actions:            
-            sub_txt+=ret_actions.add_action_link(FilledAction(DebugActionCreate(),subject,action)," "+action[0].get_noun_phrase())+", "                                
-        game_engine().add_sub_menu(menu_id.__str__(),{"text":sub_txt})
-        return ret_actions
+        self.is_considerable=True
 
-    def get_focus_html_and_actions(self,subject:TaggedObject,available_objects:list[TaggedObject]) -> ActionDict:
-        return ActionDict()
+    def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
+        ret=FocusMenuInfo()        
+        text="The Orb of Debug pulses with energy.<br>"
+        possible_create_actions,_=DebugActionCreate().get_possible_fills(subject,available_objects)        
+        text+="<ul>"
+        for action in possible_create_actions:            
+            text+="<li>Create a "+ret.actions.add_action_link(FilledAction(DebugActionCreate(),subject,action),action[0].get_noun_phrase())+"</li>"        
+        text+="<li>"+ret.actions.add_action_link(FilledAction(ActionReturnFocus(),subject,[],"Return to what you were doing")        ,"Return to what you were doing.")+"</li>"
+        text+="</ul>"
+        ret.html=text
+        return ret                
 
 
 
