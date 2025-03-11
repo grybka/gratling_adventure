@@ -1,0 +1,3 @@
+substitution specific variables
+$new_id
+-Anything that starts with new_ that isn't bound will be given a uuid I suppose

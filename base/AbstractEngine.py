@@ -1,3 +1,6 @@
+import io
+import pygame
+
 def comma_separate_list(items):
     if len(items)==0:
         return ""
@@ -30,6 +33,7 @@ class AbstractEngine:
         self.exit_info=[]
         self.sub_menus={}
         self.room_features=[]
+        self.map_image=None #pygame surface
 
     def announce_action(self,text): #these go into events        
         self.events.append(text)        
@@ -64,6 +68,15 @@ class AbstractEngine:
                 "menu_info":self.sub_menus,
                 "room_features":self.room_features}
         return ret
+    
+    def get_map_image(self) -> io.BytesIO:
+        test_surf=pygame.Surface((256,256))
+        test_surf.fill((255,0,0))
+        self.map_image=test_surf
+        buf = io.BytesIO()
+        pygame.image.save(self.map_image, buf)
+        buf.seek(0)
+        return buf
                 
 
 def set_game_engine(engine:AbstractEngine):

@@ -33,6 +33,7 @@ function RefreshGame(){
     .then(data => {        
         UpdateGameScreen(data);            
         console.log(data);
+        FetchMapImage(); //Fetch the map image after the game state is updated
     });
 }  
 function RegenerateWorld(){
@@ -47,7 +48,20 @@ function RegenerateWorld(){
         UpdateGameScreen(data);            
         console.log(data);
     });
-}             
+} 
+function FetchMapImage(){
+    fetch('/map',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+    }).then(response => response.blob())
+    .then(blob => {  
+        var img = URL.createObjectURL(blob);   
+        document.getElementById('map_image').setAttribute('src', img);   
+    });
+}
 
 //This updates the game screen with the new game state
 function UpdateGameScreen(game_state){ 

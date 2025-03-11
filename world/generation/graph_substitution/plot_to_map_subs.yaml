@@ -1,0 +1,54 @@
+substitution_rules:
+  - rule_name: "choice_to_room"
+    find_graph: 
+      nodes: 
+        - id: "$choice_node"
+          data_pattern: {"plot_gen_type": "choice"}
+    replace_graph:
+      nodes:
+        - id: "$choice_node"
+          data_pattern: {}
+  - rule_name: "challenge_to_door"
+    find_graph:
+      nodes:
+        - id: "$challenge_node"
+          data_pattern: {"plot_gen_type": "challenge"}
+      edges:
+        - head: "$next_node"
+          tail: "$challenge_node"
+        - head: "$challenge_node"
+          tail: "$prev_node"
+    replace_graph:
+      edges:
+        - head: "$next_node"
+          tail: "$prev_node"
+          data_pattern: {"edge_type": "door"}
+  - rule_name: "union_to_room"
+    find_graph:
+      nodes:
+        - {"id": "$union_node","data_pattern": {"plot_gen_type":"union"}}
+    replace_graph:
+      nodes:
+        - {"id": "$union_node"}
+  - rule_name: "dead_end_to_room"
+    find_graph:
+      nodes:
+        - {"id": "$deadend_node","data_pattern": {"plot_gen_type":"dead_end"}}
+    replace_graph:
+      nodes:
+        - {"id": "$deadend_node"}
+  - rule_name: "goal_to_room"
+    find_graph:
+      nodes:
+        - {"id": "$deadend_node","data_pattern": {"plot_gen_type":"goal"}}
+    replace_graph:
+      nodes:
+        - {"id": "$deadend_node"}
+  - rule_name: "start_to_room"
+    find_graph:
+      nodes:
+        - {"id": "$deadend_node","data_pattern": {"plot_gen_type":"start"}}
+    replace_graph:
+      nodes:
+        - {"id": "$deadend_node","data_pattern": {"start_room": true}}
+  

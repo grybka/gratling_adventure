@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 import random
-from world.generation.MapGenerator import MapGenerator1
+#from world.generation.MapGenerator import MapGenerator1
+from world.generation.MapGenerator2 import MapGenerator2
 from engine.Engine import GameEngine
 from base.AbstractEngine import set_game_engine,game_engine
 import sys
@@ -27,12 +28,18 @@ def regenerate():
 
 
 def new_world():
-    map_generator=MapGenerator1()
+    map_generator=MapGenerator2()
     map_generator.generate_map()
     engine=GameEngine(map_generator.my_map)
     set_game_engine(engine)
     engine.player_turn_start()
 
+@app.route('/map', methods=['POST'])
+def get_map():
+    engine=game_engine()
+    map_image=engine.get_map_image()
+    return Response(map_image.read(),mimetype='image/png')
+    #TODO  return image
 
 @app.route('/action', methods=['POST'])
 def action():
