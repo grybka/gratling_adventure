@@ -69,11 +69,10 @@ class PlotToMap:
         return open_nodes
     
     def plot_to_rooms(self,plot_graph):
-        any_left=True
-        #apply my substitution rules
-        while any_left:
-            any_left=False
-            for substitution in self.substitutions:
+        for substitution in self.substitutions:
+            working=True
+            while working:
+                working=False
                 matches=substitution.match_subgraphs(plot_graph)
                 if len(matches)>0:
                     my_match=matches[0]
@@ -81,7 +80,7 @@ class PlotToMap:
                     #print("node before substitution",plot_graph.get_node(list(my_match.values())[0]).to_object())
                     plot_graph=substitution.apply_match(plot_graph,my_match)
                     #print("node after substitution",plot_graph.get_node(list(my_match.values())[0]).to_object())
-                    any_left=True
+                    working=True
         return plot_graph
 
     def assignment_weight(self,assignments,plot_graph):

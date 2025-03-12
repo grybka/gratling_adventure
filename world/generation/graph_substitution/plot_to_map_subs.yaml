@@ -1,4 +1,4 @@
-substitution_rules:
+substitution_rules: #right now they are in order of application
   - rule_name: "choice_to_room"
     find_graph: 
       nodes: 
@@ -18,11 +18,24 @@ substitution_rules:
           tail: "$challenge_node"
         - head: "$challenge_node"
           tail: "$prev_node"
+    but_not_graph:
+      edges:
+        - tail: "$prev_node"
+          head: "$next_node"
     replace_graph:
       edges:
         - head: "$next_node"
           tail: "$prev_node"
-          data_pattern: {"edge_type": "door"}
+          data_pattern: {"edge_class": "DoorExit"}
+  - rule_name: "challenge_to_room"
+    find_graph:
+      nodes:
+        - id: "$challenge_node"
+          data_pattern: {"plot_gen_type": "challenge"}
+    replace_graph:
+      nodes:
+        - id: "$challenge_node"
+          data_pattern: {}
   - rule_name: "union_to_room"
     find_graph:
       nodes:

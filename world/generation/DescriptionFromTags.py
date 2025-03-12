@@ -42,3 +42,5 @@ class DescriptionGenerator:
 
     def generate_description(self,tags,senses,seed=1):
         #Keep only tags that are relevant to the senses
+
+

@@ -68,7 +68,7 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
         ret.html=self.get_entrance_text()+"<br>"        
         for exit in self.exits:      
             txt=exit.get_exit_html_and_actions(subject,available_objects,ret.actions)
-            ret.html+=txt            
+            ret.html+=txt+"<br>" 
         if len(self.get_contents())>0:
             ret.html+="<br>Objects in the room:<br>"
         for obj in self.get_contents():
@@ -177,12 +177,25 @@ class DoorExit(GameExit,OpenableInterface):
             game_engine().announce_failure("The door is closed.")
             return False,0
         
-    #def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
-        #...
-        #if the door is open, then one can go or focus on it
-        #if the player believes the door is closed, then they can open it
-        #if the player believes the door to be locked, then they can try to unlock it
-        #if the player believes the door to be stuck, then they can try to unstick it
+    def get_noun_phrase(self):
+        if self.direction is None:
+            return super().get_noun_phrase()
+        else:
+            if self.is_open:
+                return "open "+self.get_base_noun()+" to the "+self.direction
+            else:
+                return "closed "+self.get_base_noun()+" to the "+self.direction
+            
+    #called from the room when making its menu
+    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject],actiondict:ActionDict):
+        #Returns an html string and a list of actions that match the hyperlinks in the slot                
+        if self.is_open:
+            #if it is open, then it is like a regular exit
+            return super().get_exit_html_and_actions(subject,available_objects,actiondict)
+        open_action=FilledAction(ActionOpen(),subject,[self],"Open the "+self.get_noun_phrase())        
+        ret_txt=actiondict.add_action_link(open_action,"Open")+" the "+self.get_focus_noun_phrase(subject,actiondict)+"."        
+        return ret_txt
+
 
 
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):

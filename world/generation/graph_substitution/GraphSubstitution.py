@@ -3,18 +3,33 @@ import yaml
 import uuid
 
 class GraphSubstitution:
-    def __init__(self,rule_name:str,find_pattern:GraphPattern,replace_pattern:GraphPattern):
+    def __init__(self,rule_name:str,find_pattern:GraphPattern,replace_pattern:GraphPattern,but_not_pattern=None):
         self.rule_name=rule_name
         self.find_pattern=find_pattern
+        self.but_not_pattern=but_not_pattern
         self.replace_pattern=replace_pattern
         #TODO info about the substitution
         #like, what variables need to be created
 
     def to_object(self):
-        return {"rule_name":self.rule_name,"find_graph":self.find_pattern.to_object(),"replace_graph":self.replace_pattern.to_object()}
+        if self.but_not_pattern is not None:
+            return {"rule_name":self.rule_name,"find_graph":self.find_pattern.to_object(),"replace_graph":self.replace_pattern.to_object()}
+        else:
+            return {"rule_name":self.rule_name,"find_graph":self.find_pattern.to_object(),"replace_graph":self.replace_pattern.to_object(),"but_not_graph":self.but_not_pattern.to_object()}
 
     def match_subgraphs(self,graph:Graph):
-        return self.find_pattern.match_subgraphs(graph)
+        matching=self.find_pattern.match_subgraphs(graph)
+        if self.but_not_pattern is not None:
+            almost_matching=matching
+            matching=[]
+            for match in almost_matching:
+                test_pattern=self.but_not_pattern.fill(match)
+                if len(test_pattern.match_subgraphs(graph))==0:
+                    matching.append(match)
+        return matching            
+        
+
+
     
     def apply_match(self,graph:Graph,match_dict:dict):
         remove_graph=self.find_pattern.fill(match_dict).to_graph()
@@ -41,7 +56,11 @@ def object_to_graph_substitution(obj):
     rule_name=obj["rule_name"]
     find_pattern=object_to_graph_pattern(obj["find_graph"])
     replace_pattern=object_to_graph_pattern(obj["replace_graph"])
-    return GraphSubstitution(rule_name,find_pattern,replace_pattern)
+    if "but_not_graph" in obj:
+        but_not_pattern=object_to_graph_pattern(obj["but_not_graph"])
+        return GraphSubstitution(rule_name,find_pattern,replace_pattern,but_not_pattern)
+    else:
+        return GraphSubstitution(rule_name,find_pattern,replace_pattern)
 
 def load_substitutions(fname):
     data=yaml.safe_load(open(fname,'r'))

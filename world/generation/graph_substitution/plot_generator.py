@@ -120,6 +120,13 @@ class PlotGenerator:
         other_open_nodes = [n for n in self.open_nodes if n != node]
         other_node=random.choice(other_open_nodes)
         print("union with {}".format(other_node.to_object()))
+        #special case.  Fail if this will lead to two edges between the same nodes
+        for e in self.graph.edges:
+            if e.head==other_node.id:
+                for k in self.graph.edges:
+                    if k.head==node.id and k.tail==e.tail:
+                        print("union failed, would lead to double edge")
+                        return [node]
         #So will move this node up and inteprose myself as a union
         for e in self.graph.edges:
             if e.head==other_node.id:

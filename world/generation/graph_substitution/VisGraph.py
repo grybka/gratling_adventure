@@ -1,4 +1,4 @@
-from Graph import *
+from world.generation.graph_substitution.Graph import *
 import graphviz
 
 def view_graph(x:Graph, data_title=None):
@@ -24,5 +24,5 @@ def view_graph_grid(x:Graph, loc_title,data_title=None):
     for edge in x.edges:
         dot.edge(edge.tail, edge.head)
     print(dot.source)  # doctest: +NORMALIZE_WHITESPACE
-    dot.render('test-output/view_graph.gv', view=True)  # doctest: +SKIP
+    dot.render('test-output/view_graph_grid.gv', view=True)  # doctest: +SKIP
 
