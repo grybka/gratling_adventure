@@ -6,7 +6,26 @@ from world.generation.graph_substitution.plot_generator import *
 #walk through the plot graph
 #it probably doesn't matter which end we start from
 
+#get all nodes that are before challenge number n
+def get_nodes_before_challenge(n,plot_graph,start_node):
+    visited=set()
+    to_visit=[start_node]
+    ret=[]
+    while len(to_visit)>0:
+        current=to_visit.pop(0)
+        if current in visited:
+            continue
+        visited.add(current)
+        if "challenge_number" not in plot_graph.get_node(current).data or plot_graph.get_node(current).data["challenge_number"]<n:                    
+            ret.append(current)
+            for edge in plot_graph.edges:
+                if edge.head==current:
+                    to_visit.append(edge.tail)
+                if edge.tail==current:
+                    to_visit.append(edge.head)
+    return ret
 
+    
 
 
 class PlotToMap:

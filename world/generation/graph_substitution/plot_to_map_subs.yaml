@@ -12,7 +12,7 @@ substitution_rules: #right now they are in order of application
     find_graph:
       nodes:
         - id: "$challenge_node"
-          data_pattern: {"plot_gen_type": "challenge"}
+          data_pattern: {"plot_gen_type": "challenge","challenge_number": "$challenge_number"}
       edges:
         - head: "$next_node"
           tail: "$challenge_node"
@@ -26,16 +26,16 @@ substitution_rules: #right now they are in order of application
       edges:
         - head: "$next_node"
           tail: "$prev_node"
-          data_pattern: {"edge_class": "DoorExit"}
+          data_pattern: {"edge_class": "DoorExit","challenge_number": "$challenge_number"}
   - rule_name: "challenge_to_room"
     find_graph:
       nodes:
         - id: "$challenge_node"
-          data_pattern: {"plot_gen_type": "challenge"}
+          data_pattern: {"plot_gen_type": "challenge","challenge_number": "$challenge_number"}
     replace_graph:
       nodes:
         - id: "$challenge_node"
-          data_pattern: {}
+          data_pattern: {"challenge_number": "$challenge_number"}
   - rule_name: "union_to_room"
     find_graph:
       nodes:

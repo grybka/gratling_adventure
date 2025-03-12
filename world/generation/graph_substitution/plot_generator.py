@@ -17,7 +17,11 @@ import random
 class PlotGenerator:
     def __init__(self):
         self.start_node=Node("start",{"plot_gen_type":"start"})
-        self.graph = Graph([self.start_node],[])
+        #the graph is what is filled out at the end
+        self.graph = Graph([self.start_node],[])        
+
+
+
         self.open_nodes=[]
 
         n_exits=random.randint(2,3)
@@ -45,11 +49,6 @@ class PlotGenerator:
         self.graph.edges.append(new_edge)
         return new_node
 
-
-
-
-
-
     def generate_plot(self):
         #breadth or depth first?  Let's do breadth
         while len(self.open_nodes) > 0:
@@ -62,6 +61,15 @@ class PlotGenerator:
             for new_node in new_nodes:
                 #print("adding to open node {}".format(new_node.to_object()))
                 self.open_nodes.append(new_node)
+        #now label challenges in order
+        node_order=self.graph.breadth_first_walk(self.start_node.id)
+        n_challenges=0
+        for i in range(len(node_order)):
+            node=self.graph.get_node(node_order[i])
+            if node.data["plot_gen_type"]=="challenge":
+                node.data["challenge_number"]=n_challenges
+                n_challenges+=1
+        print("n challenges is {}".format(n_challenges))
 
     def expand_node(self, node:Node):
         #Still to do: disfavor unions right after choices?  maybe not

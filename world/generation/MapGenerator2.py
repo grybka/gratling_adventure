@@ -8,7 +8,8 @@ import yaml
 from world.generation.graph_substitution.VisGraph import *
 
 
-show_graphs=True
+#show_graphs=True
+show_graphs=False
 
 class GameLevel:
     def __init__(self):
@@ -78,14 +79,7 @@ class MapGenerator2:
         for edge in room_graph.edges:
             self.create_exit_pair(edge,ret,assignment)            
         self.my_map=ret
-        self.stock_dungeon()
 
-    def stock_dungeon(self):
-        #first identify any items that are required by challenges       
-        for need in self.needed_items:
-            #figure out what rooms it could go in
-            #The idea is that  
-        ...    
 
     def create_exit_pair(self,edge,level,assignment):        
         room1=level.rooms[edge.tail]
@@ -99,7 +93,7 @@ class MapGenerator2:
             exit1=the_class(room2)
             exit2=the_class(room1)       
             #test code
-            self.needed_items.append(ItemNeed(exit1,"key"))                 
+            #self.needed_items.append(ItemNeed(exit1,"key"))                 
         else:
             exit1=GameExit(room2)
             exit2=GameExit(room1)        
