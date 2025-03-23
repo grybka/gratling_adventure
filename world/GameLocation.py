@@ -4,7 +4,7 @@ from base.AbstractEngine import AbstractEngine,game_engine
 from base.Action import Action,ActionDict,FilledAction
 from engine.BasicActions import *
 from base.FocusMenu import *
-
+from .Language import *
 #Needs to have:
 #room name  (this is what shows up on the map.  3 words long max)
 #description  (what gets read when you enter the room)
@@ -65,16 +65,16 @@ class GameLocation(ContainerInterface,GameObject,FocusMenu):
     
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()
-        ret.html=self.get_entrance_text()+"<br>"        
+        ret.html=self.get_entrance_text()+"<br><br>"        
         for exit in self.exits:      
             txt=exit.get_exit_html_and_actions(subject,available_objects,ret.actions)
-            ret.html+=txt+"<br>" 
-        if len(self.get_contents())>0:
-            ret.html+="<br>Objects in the room:<br>"
+            ret.html+=txt+"<br>"         
+        #if len(self.get_contents())>1:
+            #ret.html+="<br>Objects in the room:<br>"
         for obj in self.get_contents():
             if obj is not subject:
-                txt=obj.get_item_html_and_actions(subject,available_objects,ret.actions)
-                ret.html+=txt
+                txt="A "+obj.get_item_html_and_actions(subject,available_objects,ret.actions)+" lies on the floor here."
+                ret.html+=txt+"<br>"
                 #ret.add_text_and_action(obj.get_item_html_and_actions(subject,available_objects)) 
         print("actions: "+str(ret.actions))      
         return ret
@@ -103,21 +103,28 @@ class GameExit(GameObject):
         #stuff for words
         self.direction=None #the direction that this exit leads to
         self.is_considerable=False
+        self.description=None
 
     def is_passable(self):
         return True
 
-    def get_noun_phrase(self):
-        if self.direction is None:
-            return super().get_noun_phrase()
-        else:
-            return self.direction+" "+super().get_noun_phrase()
+#    def get_noun_phrase(self):
+        #if self.direction is None:
+         #   return super().get_noun_phrase()
+        #else:
+         #   return self.direction+" "+super().get_noun_phrase()
         
     def get_short_description(self):
         if self.direction is None:
             return super().get_short_description()
         else:
             return self.get_base_noun()+" to the "+self.direction
+        
+    def set_description(self,description):
+        self.description=description
+
+    def get_description(self):
+        return self.description
 
     def go_action(self,goer):        
         success=game_engine().transfer_object(goer,self.destination)
@@ -127,11 +134,12 @@ class GameExit(GameObject):
         return False,0
     
     #called from the room when making its menu
-    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject],actiondict:ActionDict):
+    def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject],actiondict:ActionDict):        
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
         #ret_action=ActionDict()
         go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())        
-        ret_txt=actiondict.add_action_link(go_action,"Go")+" through the "+self.get_focus_noun_phrase(subject,actiondict)+"."        
+        #ret_txt=actiondict.add_action_link(go_action,"Go")+" through the "+self.get_focus_noun_phrase(subject,actiondict)+"."        
+        ret_txt=add_a_or_an(self.get_noun_phrase()).capitalize()+" leads to the "+actiondict.add_action_link(go_action,self.direction)+". "
         return ret_txt
 
 #DoorExits can be open or closed
@@ -143,12 +151,23 @@ class DoorExit(GameExit,OpenableInterface):
         super().__init__(destination=destination,base_noun="door")        
         self.is_open=False
         self.is_stuck=False
-        self.lock_id=None
-        self.is_locked=False
+        self.is_locked=True
+        self.is_considerable=True #so we can see it in the room description
 
     def is_passable(self):
         return self.is_open
     
+    def set_lock_id(self,id):
+        self.lock_id=id #set the lock id for this door
+        self.exit_pair.lock_id=id #make sure the exit pair has the same lock id
+
+    
+    def get_focus_description(self):
+        open_or_closed="open" if self.is_open else "closed"   
+        if self.is_locked and self.player_knows_lock_state:
+            open_or_closed="locked"
+        return "This "+open_or_closed+" door leads to the "+self.direction+". "+self.get_description()
+
     def get_short_description(self):
         if self.direction is None:
             return super().get_short_description()
@@ -178,26 +197,44 @@ class DoorExit(GameExit,OpenableInterface):
             return False,0
         
     def get_noun_phrase(self):
+        return self.get_base_noun()
         if self.direction is None:
             return super().get_noun_phrase()
         else:
-            if self.is_open:
-                return "open "+self.get_base_noun()+" to the "+self.direction
-            else:
-                return "closed "+self.get_base_noun()+" to the "+self.direction
+            return self.get_base_noun()+" to the "+self.direction
+            #if self.is_open:
+            #    return "open "+self.get_base_noun()+" to the "+self.direction
+            #else:
+            #    return "closed "+self.get_base_noun()+" to the "+self.direction
             
     #called from the room when making its menu
     def get_exit_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject],actiondict:ActionDict):
         #Returns an html string and a list of actions that match the hyperlinks in the slot                
         if self.is_open:
+            go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())        
+            return "An open "+self.get_focus_noun_phrase(subject,actiondict)+" leads to the "+actiondict.add_action_link(go_action,self.direction)+". "
+
             #if it is open, then it is like a regular exit
             return super().get_exit_html_and_actions(subject,available_objects,actiondict)
-        open_action=FilledAction(ActionOpen(),subject,[self],"Open the "+self.get_noun_phrase())        
-        ret_txt=actiondict.add_action_link(open_action,"Open")+" the "+self.get_focus_noun_phrase(subject,actiondict)+"."        
+        if not self.is_locked or not self.player_knows_lock_state:
+            open_action=FilledAction(ActionOpen(),subject,[self],"Open the "+self.get_noun_phrase())
+            ret_txt="A "+actiondict.add_action_link(open_action,"closed")+" "+self.get_focus_noun_phrase(subject,actiondict)+" leading "+self.direction+"."
+            return ret_txt
+        if self.is_locked and self.player_knows_lock_state:
+            #if it is locked, then we need to say so
+            ret_txt="A locked "+self.get_focus_noun_phrase(subject,actiondict)+" leads to the "+self.direction+". "
+            return ret_txt
         return ret_txt
 
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        options=[]
+        options.extend(OpenableInterface.get_focus_menu_items(self,subject,available_objects,actiondict))
+        if self.is_open:
+            go_action=FilledAction(ActionGo(),subject,[self],"Go through the "+self.get_noun_phrase())
+            options.append("You "+actiondict.add_action_link(go_action,"go")+" through the "+self.get_noun_phrase())
+        return options
 
-
+"""
     def get_world_html_and_actions(self,subject:TaggedObject,available_objects:list[GameObject]):
         #Returns an html string and a list of actions that match the hyperlinks in the slot        
         ret_txt=""
@@ -216,6 +253,7 @@ class DoorExit(GameExit,OpenableInterface):
         #if self.has_focus:
             #ret_actions.add_action_dict(self.get_focus_html_and_actions(subject,available_objects))
             #self.has_focus=False
-        return ret_actions       
+        return ret_actions "
+"""     
 
 register_game_object_class("DoorExit",DoorExit)

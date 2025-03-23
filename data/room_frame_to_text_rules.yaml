@@ -1,0 +1,40 @@
+default_productions:
+  - "START -> \"This \" FEATUREADJ \" \" ROOMNOUN \" has \" FEATUREN \".\""
+  - "START -> FEATUREN \" and \" FEATUREN  \".\""
+  - "START -> FEATUREN \", \" FEATUREN \" and \" FEATUREN \".\""
+  - "ROOMNAME -> FEATUREADJ \" \" ROOMNOUN"
+match_productions:
+  - frame: {wall_material: stone}
+    rule: "FEATUREN -> \"stone walls\""
+  - frame: {wall_material: stone}
+    rule: "FEATUREADJ -> \"stone\""
+  - frame: {wall_material: brick}
+    rule: "FEATUREN -> \"brick walls\""
+  - frame: {wall_material: brick}
+    rule: "FEATUREADJ -> \"brick\""
+  - frame: {wall_material: plaster}
+    rule: "FEATUREN -> \"plaster walls\""
+  - frame: {wall_material: plaster}
+    rule: "FEATUREADJ -> \"plaster\""
+  - frame: {room_smell: musty}
+    rule: "FEATUREN -> \"a musty smell\""
+  - frame: {room_smell: musty}
+    rule: "FEATUREADJ -> \"musty\""
+  - frame: {room_smell: damp}
+    rule: "FEATUREN -> \"a damp smell\""
+  - frame: {room_smell: damp}
+    rule: "FEATUREADJ -> \"damp\""
+  - frame: { room_type: room }
+    rule: "ROOMNOUN -> \"room\""
+  - frame: { room_type: hall }
+    rule: "ROOMNOUN -> \"hall\""
+  - frame: { room_type: chamber }
+    rule: "ROOMNOUN -> \"chamber\""
+  - frame: { room_type: corridor }
+    rule: "ROOMNOUN -> \"corridor\""  
+  - frame: { room_shape: square}
+    rule: "FEATUREADJ -> \"square\""
+  - frame: { room_shape: rectangular}
+    rule: "FEATUREADJ -> \"rectangular\""
+  - frame: { room_shape: circular}
+    rule: "FEATUREADJ -> \"circular\""

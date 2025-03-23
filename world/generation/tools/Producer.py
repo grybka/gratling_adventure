@@ -50,6 +50,7 @@ class Production:
         self.lhs=""
         self.rhs=[]
         self.weight=1
+        self.max_usage=-1
         tokens=re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', line)
         try:
             assert(len(tokens)>2)
@@ -69,17 +70,28 @@ class Production:
 
 
 class Grammar:
-    def __init__(self):
-        self.productions={} # dictionary of symbol -> production
+    def __init__(self,productions={}):
+        if isinstance(productions,list):
+            self.productions={}
+            for p in productions:
+                self.add_production(p)
+            return
+        if not isinstance(productions,dict):
+            raise Exception("productions must be a dictionary")
+        self.productions=productions # dictionary of symbol -> production
+
+    def add_production(self,production):
+        if production.lhs in self.productions:
+            self.productions[production.lhs].append(production)
+        else:
+            self.productions[production.lhs]=[ production ]
+
     def load_string(self,s:str):
         for line in s.splitlines():
             if len(line)==0 or line[0]=='#':
                 continue
             p=Production(line)
-            if p.lhs in self.productions:
-                self.productions[p.lhs].append(p)
-            else:
-                self.productions[p.lhs]=[ p ]
+            self.add_production(p)
 
     def produce(self,start_string:str):
         #should I always assume we start with a nonterminal?
@@ -99,6 +111,67 @@ class Grammar:
                 out_string+=self._produce(tok)
         return out_string
 
+class GrammarWithMaxUsage:
+    def __init__(self,productions={}):
+        if isinstance(productions,list):
+            self.productions={}
+            for p in productions:
+                self.add_production(p)
+            return
+        if not isinstance(productions,dict):
+            raise Exception("productions must be a dictionary")
+        self.productions=productions # dictionary of symbol -> production
+
+    def add_production(self,production):
+        if production.lhs in self.productions:
+            self.productions[production.lhs].append(production)
+        else:
+            self.productions[production.lhs]=[ production ]
+            
+    def load_string(self,s:str):
+        for line in s.splitlines():
+            if len(line)==0 or line[0]=='#':
+                continue
+            p=Production(line)
+            self.add_production(p)
+
+    def produce(self,start_string:str):
+        my_usage={}
+        #should I always assume we start with a nonterminal?
+        start_symbol=Symbol(start_string,False)
+        return self._produce(start_symbol,my_usage)
+    
+    def get_valid_rules(self,start_symbol:Symbol,usage_count={}):
+        if start_symbol not in self.productions:
+            raise Exception("no production for |{}| ({})".format(start_symbol,start_symbol.is_terminal()))
+        valid_prods=[]
+        valid_weights=[]
+        for prod in self.productions[start_symbol]:
+            prod_str=str(prod)
+            if prod.max_usage==-1 or (start_symbol not in usage_count) or usage_count[prod_str]<prod.max_usage:
+                valid_prods.append(prod)
+                valid_weights.append(prod.weight)
+        return valid_prods,valid_weights
+
+    def _produce(self,start_symbol:Symbol,usage_count={}):
+        print("producing {}".format(start_symbol))
+        print("usage count",usage_count)
+        out_string=""
+        valid_prods,weights=self.get_valid_rules(start_symbol,usage_count)
+        prod=random.choices(valid_prods,weights=weights,k=1)[0]
+        prod_str=str(prod)
+        print("chose production",prod_str)
+        if prod_str not in usage_count:
+            usage_count[prod_str]=1
+        else:
+            usage_count[prod_str]+=1
+
+        for tok in prod.rhs:
+            if tok.is_terminal():
+                out_string+=tok.rep
+            else:
+                out_string+=self._produce(tok,usage_count)
+        return out_string
 
 
 

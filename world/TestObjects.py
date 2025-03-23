@@ -86,8 +86,14 @@ class BasicNPC(Character):
             game_engine().writer.announce_failure(self.get_noun_phrase()+" fails to leave the room")
 
 class BasicKey(KeyInterface,GameObject):
-    def __init__(self,base_noun="key"):
+    def __init__(self,base_noun="key",my_lock_id=1):
         super().__init__(base_noun=base_noun)
         self.description="It's a key" #description of the key
-        self.my_lock_id=1
+        self.my_lock_id=my_lock_id
+        self.is_considerable=True
+
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        options=[]
+        options.extend(CarryableInterface.get_focus_menu_items(self,subject,available_objects,actiondict))
+        return options
     

@@ -1,0 +1,13 @@
+rooms:
+  room_type: [room,hall,chamber,corridor]
+  wall_material: [stone, brick, plaster]
+  floor_material: [wood, stone, tile]
+  room_shape: [square, rectangular, circular]
+  room_size: [small, medium, large]
+  room_smell: [None, musty, damp]
+exits:
+  exit_name: [passage, archway, corridor]
+  direction: [ None ] #this is filled out from the map
+doors:
+  door_type: [wooden, iron]
+  

@@ -1,6 +1,6 @@
 from world.LocationMap import LocationMap, add_grid_pos, opposite_dir
 from world.GameLocation import *
-from world.generation.Producer import Grammar
+from world.generation.tools.Producer import Grammar
 import random
 import yaml
 from bs4 import BeautifulSoup

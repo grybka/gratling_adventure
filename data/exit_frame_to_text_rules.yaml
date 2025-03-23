@@ -1,0 +1,25 @@
+default_productions:
+  - "START -> EXIT_NAME"  
+match_productions:
+  - frame: {exit_name: passage}
+    rule: "EXIT_NAME -> \"passage\""
+  - frame: {exit_name: archway}
+    rule: "EXIT_NAME -> \"archway\""
+  - frame: {exit_name: corridor}
+    rule: "EXIT_NAME -> \"corridor\""
+  - frame: {direction: north}
+    rule: "DIRECTION -> \"north\""
+  - frame: {direction: south}
+    rule: "DIRECTION -> \"south\""
+  - frame: {direction: east}
+    rule: "DIRECTION -> \"east\""
+  - frame: {direction: west}
+    rule: "DIRECTION -> \"west\""
+  - frame: {direction: northeast}
+    rule: "DIRECTION -> \"northeast\""
+  - frame: {direction: northwest}
+    rule: "DIRECTION -> \"northwest\""
+  - frame: {direction: southeast}
+    rule: "DIRECTION -> \"southeast\""
+  - frame: {direction: southwest}
+    rule: "DIRECTION -> \"southwest\""

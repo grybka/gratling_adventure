@@ -19,6 +19,8 @@ def get_nodes_before_challenge(n,plot_graph,start_node):
         if "challenge_number" not in plot_graph.get_node(current).data or plot_graph.get_node(current).data["challenge_number"]<n:                    
             ret.append(current)
             for edge in plot_graph.edges:
+                if "challenge_number" in edge.data and edge.data["challenge_number"]>=n:
+                    continue
                 if edge.head==current:
                     to_visit.append(edge.tail)
                 if edge.tail==current:
@@ -29,8 +31,8 @@ def get_nodes_before_challenge(n,plot_graph,start_node):
 
 
 class PlotToMap:
-    def __init__(self):
-        self.substitutions=load_substitutions("world/generation/graph_substitution/plot_to_map_subs.yaml")
+    def __init__(self,sub_file_name):
+        self.substitutions=load_substitutions(sub_file_name)
 
     def choose_next_location(self,location,used_locations):
         x,y=location
@@ -47,21 +49,21 @@ class PlotToMap:
     def generate_assignments(self,assignment,graph,node_id):
         #get the node
         node=graph.get_node(node_id)
-        print("node id",node_id)
+        #print("node id",node_id)
         #It has to be adjacent to each of the edges
         allowed_locations=None
         for edge in graph.edges:
             if edge.head==node_id:
                 if edge.tail in assignment:
-                    print("on edge ",edge.to_object())
+                    #print("on edge ",edge.to_object())
                     if allowed_locations is None:
                         allowed_locations=self.get_adjacent_locations(assignment[edge.tail])
                     else:
                         allowed_locations=allowed_locations.intersection(self.get_adjacent_locations(assignment[edge.tail]))
-                    print("allowed locations now ",edge,"  ",allowed_locations)
+                    #print("allowed locations now ",edge,"  ",allowed_locations)
             if edge.tail==node_id:
                 if edge.head in assignment:
-                    print("on edge ",edge.to_object())
+                    #print("on edge ",edge.to_object())
                     if allowed_locations is None:
                         allowed_locations=self.get_adjacent_locations(assignment[edge.head])
                     else:
@@ -100,6 +102,19 @@ class PlotToMap:
                     plot_graph=substitution.apply_match(plot_graph,my_match)
                     #print("node after substitution",plot_graph.get_node(list(my_match.values())[0]).to_object())
                     working=True
+        #keep track of what rooms are 'before' what challenge
+        for node in plot_graph.nodes:
+            if "start_room" in node.data:
+                start_node=node
+        
+        for node in plot_graph.nodes:
+            if "challenge_number" in node.data:
+                node.data["before_challenge"]=get_nodes_before_challenge(node.data["challenge_number"],plot_graph,start_node.id)
+                print("node {} before challenge {}".format(node.id,node.data["before_challenge"]))
+        for edge in plot_graph.edges:
+            if "challenge_number" in edge.data:
+                edge.data["before_challenge"]=get_nodes_before_challenge(edge.data["challenge_number"],plot_graph,start_node.id)
+                print("edge {} before challenge {}".format(edge.data["challenge_number"],edge.data["before_challenge"]))
         return plot_graph
 
     def assignment_weight(self,assignments,plot_graph):
@@ -146,14 +161,14 @@ class PlotToMap:
         #I should do a breadth first walk, but for now its the same as the nodes in order
         node_order=plot_graph.breadth_first_walk(self.start_node.id)
         #without loss of generality, I can always put the first node at 0,0 and teh second at 1,0
-        print("node order is ",node_order)
+        #print("node order is ",node_order)
         node_0=node_order.pop(0)
         node_1=node_order.pop(0)
         open_assignments=[{node_0:(0,0),node_1:(1,0)}]
 
         while len(open_assignments)>0:
             assignment=open_assignments.pop(0)
-            print("on assignment",assignment)
+            #print("on assignment",assignment)
             #print("#assignment, #nodes {} , {}".format(len(assignment),len(plot_graph.nodes)))
             if len(assignment)==len(plot_graph.nodes):
                 #we're done

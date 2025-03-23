@@ -1,4 +1,5 @@
-from world.generation.graph_substitution.DictMatch import *
+#from world.generation.tools.DictMatch import *
+from ..tools.DictMatch import read_pattern_from_object,DictPattern,product
 
 class Node:
     def __init__(self,id,data={}):
@@ -31,6 +32,7 @@ class Graph:
     def __init__(self,nodes=[],edges=[]):
         self.nodes=nodes
         self.edges=edges
+        #self.data={} #additional data for the graph
 
     def get_node(self,node_id):
         for node in self.nodes:

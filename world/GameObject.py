@@ -39,12 +39,18 @@ class GameObject(TaggedObject):
     def get_noun_phrase(self):
         return self.noun_phrase or self.base_noun
     
+    def set_noun_phrase(self,np):
+        self.noun_phrase=np
+    
     def get_choice_word(self):
         return self.get_noun_phrase()
     
     def get_short_description(self):
         return self.short_description or self.noun_phrase or self.base_noun
-            
+    
+    def get_focus_description(self):
+        return "There is little to say about the "+self.get_noun_phrase()+".<br>"
+
     def get_accessible_objects(self):
         return []
     
@@ -63,10 +69,7 @@ class GameObject(TaggedObject):
     
     def get_focus_html_and_actions(self, subject:TaggedObject, available_objects:list[TaggedObject]) -> FocusMenuInfo:
         ret=FocusMenuInfo()        
-        if self.short_description is not None:
-            text=self.short_description+"<br>"
-        else:
-            text="There is little to say about the "+self.get_noun_phrase()+".<br>"
+        text=self.get_focus_description()
         focus_menu_items=self.get_focus_menu_items(subject,available_objects,ret.actions)
         text+="<ul>"
         if len(focus_menu_items)>0:            
@@ -192,8 +195,18 @@ class LockableInterface(TaggedObject):
         self.is_locked=False
         self.lock_id=None #if it is none, there is no lock, and this class is dormant
 
+    def set_lock_id(self,id):
+        self.lock_id=id
+
     def lock_exists(self):
         return self.lock_id is not None
+    
+    def key_fits(self,closer:GameObject,key:KeyInterface):
+        if not self.lock_exists():
+            return False,"This "+self.get_noun_phrase()+" has no lock."
+        if key.my_lock_id!=self.lock_id:
+            return False,"The "+key.get_noun_phrase()+" does not fit the lock."
+        return True,""
 
     def can_lock(self,closer:GameObject,key:KeyInterface):
         if self.is_locked:
@@ -231,6 +244,39 @@ class LockableInterface(TaggedObject):
         self.is_locked=True
         return True,1
     
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        unlocking_objects=[]
+        if self.is_locked:
+            for object in available_objects:
+                if isinstance(object,KeyInterface) and self.can_unlock(subject,object)[0]:
+                    unlocking_objects.append(object)
+            if len(unlocking_objects)>0: #if something can unlock me
+                ret_txt=[]
+                for object in unlocking_objects:
+                    unlock_action=FilledAction(ActionUnlock(),subject,[self,object],"Unlock the "+self.get_noun_phrase())
+                    unlock_txt="You "+actiondict.add_action_link(unlock_action,"unlock")+" the "+self.get_noun_phrase()+" with the "+object.get_noun_phrase()+".<br>"
+                    ret_txt.append(unlock_txt)
+                return ret_txt
+            else:
+                return ["Nothing you have will unlock the "+self.get_noun_phrase()+".<br>"]
+        else: 
+            for object in available_objects:
+                if isinstance(object,KeyInterface) and self.can_lock(subject,object)[0]:
+                    unlocking_objects.append(object)
+
+            if len(unlocking_objects)>0:
+                #if I am unlocked, then I can be locked again
+                ret_txt=[]
+                for object in unlocking_objects:
+                    lock_action=FilledAction(ActionLock(),subject,[self,object],"Lock the "+self.get_noun_phrase())
+                    lock_txt="You "+actiondict.add_action_link(lock_action,"lock")+" the "+self.get_noun_phrase()+" with the "+object.get_noun_phrase()+".<br>"
+                    ret_txt.append(lock_txt)
+                return ret_txt    
+            else:
+                return ["Nothing you have will lock the "+self.get_noun_phrase()+".<br>"]    
+        return []
+    
+    """""
     def generate_action_submenus(self,submenu_id,subject:TaggedObject,available_objects:list[TaggedObject]):
         verb_list=[]
         ret_actions=ActionDict()
@@ -252,7 +298,8 @@ class LockableInterface(TaggedObject):
                 #add unlock to the submenu
                 unlock_txt="<a href='javascript:ExpandActionMenu(\""+key_menu_id.__str__()+"\")'>unlock</a>"
                 verb_list.append(unlock_txt)
-        return ret_actions,verb_list
+        return ret_actions,verb_list"
+    """
     
     
 
@@ -271,6 +318,8 @@ class OpenableInterface(LockableInterface,TaggedObject):
         self.is_open=False
         self.is_stuck=False
         self.is_locked=False
+        self.is_lockable=True
+        self.player_knows_lock_state=False
         self.lock_id=None #if it is none, there is no lock
         self.is_trapped=False
 
@@ -299,7 +348,9 @@ class OpenableInterface(LockableInterface,TaggedObject):
     def open_action(self,opener:GameObject):            
         possible,message=self.can_open(opener)        
         if not possible:
-            game_engine().writer.announce_failure(message)
+            if self.is_locked:
+                self.player_knows_lock_state=True #the player has tried to open it, so they know it is locked
+            game_engine().announce_failure(message)
             return False,0
         game_engine().announce_action("You open the "+self.get_noun_phrase())
         self.is_open=True
@@ -312,6 +363,23 @@ class OpenableInterface(LockableInterface,TaggedObject):
         game_engine().announce_action("You close the "+self.get_noun_phrase())
         self.is_open=False
         return True,1
+    
+    def get_focus_menu_items(self,subject:TaggedObject,available_objects:list[TaggedObject],actiondict:ActionDict):
+        ret=[]
+        if self.is_lockable and self.player_knows_lock_state and not self.is_open:
+            ret=LockableInterface.get_focus_menu_items(self,subject,available_objects,actiondict)
+        if not self.player_knows_lock_state or not self.is_locked:
+            if self.is_open:
+                close_action=FilledAction(ActionClose(),subject,[self],"You close the "+self.get_noun_phrase())
+                close_txt="You "+actiondict.add_action_link(close_action,"close")+" the "+self.get_noun_phrase()+".<br>"
+                ret.append(close_txt)
+                return ret            
+            else:
+                open_action=FilledAction(ActionOpen(),subject,[self],"Open the "+self.get_noun_phrase())
+                open_txt="You "+actiondict.add_action_link(open_action,"open")+" the "+self.get_noun_phrase()+".<br>"
+                ret.append(open_txt)
+                return ret     
+        return ret
         
 class LockObject(GameObject):
     def __init__(self,base_noun="lock"):
